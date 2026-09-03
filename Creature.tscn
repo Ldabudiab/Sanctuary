@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Creature.cs" id="1_creature"]
+[ext_resource type="Script" path="res://CreatureNeeds.cs" id="2_needs"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
 radius = 15.0
@@ -52,3 +53,6 @@ color = Color(0.32, 0.36, 0.4, 1)
 visible = false
 polygon = PackedVector2Array(0, 8, -9, 0, -9, -5, -5, -9, 0, -5, 5, -9, 9, -5, 9, 0)
 color = Color(0.95, 0.2, 0.32, 1)
+
+[node name="Needs" type="Node" parent="."]
+script = ExtResource("2_needs")

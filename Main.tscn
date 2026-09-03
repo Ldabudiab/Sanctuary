@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://7d75rgmdnque"]
+[gd_scene load_steps=7 format=3 uid="uid://7d75rgmdnque"]
 
 [ext_resource type="Script" uid="uid://b0kxhptm7a6xq" path="res://Main.cs" id="1_glv2v"]
 [ext_resource type="PackedScene" path="res://Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://Creature.tscn" id="3_creature"]
+[ext_resource type="Script" path="res://CreatureNeedsDebug.cs" id="4_needs_debug"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(1312, 16)
@@ -84,3 +85,26 @@ position = Vector2(640, 360)
 
 [node name="Creature" parent="." instance=ExtResource("3_creature")]
 position = Vector2(800, 440)
+
+[node name="DebugUI" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Background" type="ColorRect" parent="DebugUI"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 190.0
+offset_bottom = 74.0
+color = Color(0.04, 0.05, 0.06, 0.82)
+mouse_filter = 2
+
+[node name="CreatureNeeds" type="Label" parent="DebugUI"]
+offset_left = 22.0
+offset_top = 20.0
+offset_right = 180.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Hunger: 100\nHappiness: 50"
+mouse_filter = 2
+script = ExtResource("4_needs_debug")
+NeedsPath = NodePath("../../Creature/Needs")

@@ -18,6 +18,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private Node2D _visual = null!;
 	private Polygon2D _neutralMark = null!;
 	private Polygon2D _heart = null!;
+	private CreatureNeeds _needs = null!;
 	private Vector2 _wanderDirection;
 	private float _stateTimeRemaining;
 	private float _petTimeRemaining;
@@ -30,6 +31,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_visual = GetNode<Node2D>("Visual");
 		_neutralMark = GetNode<Polygon2D>("NeutralIndicator/NeutralMark");
 		_heart = GetNode<Polygon2D>("NeutralIndicator/Heart");
+		_needs = GetNode<CreatureNeeds>("Needs");
 		_random.Randomize();
 		BeginIdle();
 	}
@@ -69,6 +71,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_petElapsed = 0.0f;
 		_neutralMark.Visible = false;
 		_heart.Visible = true;
+		_needs.ApplyPetting();
 		return true;
 	}
 
