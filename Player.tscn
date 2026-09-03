@@ -43,6 +43,11 @@ color = Color(1, 0.84, 0.2, 1)
 shape = SubResource("RectangleShape2D_player")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.65, 0.65)
+limit_left = 0
+limit_top = 0
+limit_right = 1280
+limit_bottom = 720
 
 [node name="CarriedFoodVisual" type="Node2D" parent="."]
 visible = false

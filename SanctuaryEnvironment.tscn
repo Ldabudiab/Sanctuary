@@ -1,0 +1,49 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://Assets/Environment/sanctuary_background.png" id="1_background"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_boundary"]
+size = Vector2(1190, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_boundary"]
+size = Vector2(50, 670)
+
+[node name="SanctuaryEnvironment" type="Node2D"]
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -10
+texture_filter = 1
+position = Vector2(640, 360)
+scale = Vector2(0.76555, 0.765143)
+texture = ExtResource("1_background")
+
+[node name="WorldCollision" type="Node2D" parent="."]
+
+[node name="NorthBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(640, 25)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/NorthBoundary"]
+shape = SubResource("RectangleShape2D_horizontal_boundary")
+
+[node name="SouthBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(640, 695)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/SouthBoundary"]
+shape = SubResource("RectangleShape2D_horizontal_boundary")
+
+[node name="WestBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(25, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/WestBoundary"]
+shape = SubResource("RectangleShape2D_vertical_boundary")
+
+[node name="EastBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(1255, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/EastBoundary"]
+shape = SubResource("RectangleShape2D_vertical_boundary")
+
+[node name="PondBoundary" type="StaticBody2D" parent="WorldCollision"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="WorldCollision/PondBoundary"]
+polygon = PackedVector2Array(790, 130, 845, 92, 1000, 88, 1090, 125, 1130, 185, 1105, 260, 1025, 300, 890, 292, 805, 245, 775, 185)
