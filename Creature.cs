@@ -9,6 +9,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 		Eating
 	}
 
+	private enum SocialInteraction
+	{
+		None,
+		Greeting,
+		Push
+	}
+
 	[Export]
 	public float WanderSpeed { get; set; } = 70.0f;
 
@@ -39,6 +46,21 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float InvestigationDuration { get; set; } = 1.5f;
 
+	[Export]
+	public float SocialInteractionRange { get; set; } = 400.0f;
+
+	[Export]
+	public float SocialArrivalDistance { get; set; } = 42.0f;
+
+	[Export]
+	public float SocialReactionDuration { get; set; } = 1.5f;
+
+	[Export]
+	public float PushSpeed { get; set; } = 120.0f;
+
+	[Export]
+	public float PushDuration { get; set; } = 0.35f;
+
 	public string CurrentAiState { get; private set; } = "Idle";
 
 	private readonly RandomNumberGenerator _random = new();
@@ -48,19 +70,28 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private Polygon2D _eatingMark = null!;
 	private Label _sleepMark = null!;
 	private Label _investigateMark = null!;
+	private Label _socialHappyMark = null!;
+	private Label _socialPushMark = null!;
 	private CreatureNeeds _needs = null!;
 	private CreaturePersonality _personality = null!;
 	private Player _player = null!;
 	private InterestPoint _investigationTarget = null!;
+	private Creature _socialPartner = null!;
 	private Vector2 _wanderDirection;
 	private float _stateTimeRemaining;
 	private float _reactionTimeRemaining;
 	private float _reactionElapsed;
+	private float _socialTimeRemaining;
+	private float _pushTimeRemaining;
+	private Vector2 _pushDirection;
 	private bool _isWandering;
 	private bool _isSleeping;
 	private bool _isInvestigating;
 	private bool _isExamining;
+	private bool _isSocialInitiator;
+	private bool _isSocialPerforming;
 	private Reaction _reaction;
+	private SocialInteraction _socialInteraction;
 
 	public override void _Ready()
 	{
@@ -70,6 +101,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_eatingMark = GetNode<Polygon2D>("NeutralIndicator/EatingMark");
 		_sleepMark = GetNode<Label>("NeutralIndicator/SleepMark");
 		_investigateMark = GetNode<Label>("NeutralIndicator/InvestigateMark");
+		_socialHappyMark = GetNode<Label>("NeutralIndicator/SocialHappyMark");
+		_socialPushMark = GetNode<Label>("NeutralIndicator/SocialPushMark");
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_personality = GetNode<CreaturePersonality>("Personality");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
@@ -101,6 +134,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 		}
 
 		_needs.TickAwake((float)delta);
+
+		if (_socialInteraction != SocialInteraction.None)
+		{
+			UpdateSocialInteraction((float)delta);
+			MoveAndSlide();
+			return;
+		}
 
 		if (_isInvestigating)
 		{
@@ -154,6 +194,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private void BeginReaction(Reaction reaction, float duration)
 	{
+		CancelSocialInteraction();
 		CancelInvestigation();
 		_reaction = reaction;
 		_isWandering = false;
@@ -174,6 +215,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private void BeginSleep()
 	{
+		CancelSocialInteraction();
 		CancelInvestigation();
 		_isSleeping = true;
 		_isWandering = false;
@@ -273,6 +315,155 @@ public partial class Creature : CharacterBody2D, IInteractable
 		Velocity = Vector2.Zero;
 	}
 
+	private bool TryBeginSocialInteraction()
+	{
+		Creature closestCreature = null;
+		float closestDistanceSquared = SocialInteractionRange * SocialInteractionRange;
+
+		foreach (Node node in GetTree().GetNodesInGroup("creatures"))
+		{
+			if (node is not Creature creature || creature == this || !creature.CanParticipateInSocial())
+				continue;
+
+			float distanceSquared = GlobalPosition.DistanceSquaredTo(creature.GlobalPosition);
+			if (distanceSquared <= closestDistanceSquared)
+			{
+				closestDistanceSquared = distanceSquared;
+				closestCreature = creature;
+			}
+		}
+
+		if (closestCreature == null)
+			return false;
+
+		float socialChance = _personality.Social >= 0.0f
+			? Mathf.Lerp(0.08f, 0.50f, _personality.Social / 100.0f)
+			: Mathf.Lerp(0.08f, 0.005f, -_personality.Social / 100.0f);
+
+		if (_random.Randf() >= socialChance)
+			return false;
+
+		float pushChance = _personality.Temperament >= 0.0f
+			? Mathf.Lerp(0.35f, 0.90f, _personality.Temperament / 100.0f)
+			: Mathf.Lerp(0.35f, 0.05f, -_personality.Temperament / 100.0f);
+		SocialInteraction interaction = _random.Randf() < pushChance
+			? SocialInteraction.Push
+			: SocialInteraction.Greeting;
+
+		if (!closestCreature.TryReserveSocialInteraction(this, interaction))
+			return false;
+
+		_socialPartner = closestCreature;
+		_socialInteraction = interaction;
+		_isSocialInitiator = true;
+		_isSocialPerforming = false;
+		_isWandering = false;
+		CurrentAiState = interaction == SocialInteraction.Greeting ? "Greeting" : "Pushing";
+		return true;
+	}
+
+	private bool CanParticipateInSocial()
+	{
+		return _reaction == Reaction.None
+			&& !_isSleeping
+			&& !_isInvestigating
+			&& _socialInteraction == SocialInteraction.None;
+	}
+
+	private bool TryReserveSocialInteraction(Creature initiator, SocialInteraction interaction)
+	{
+		if (!CanParticipateInSocial())
+			return false;
+
+		_socialPartner = initiator;
+		_socialInteraction = interaction;
+		_isSocialInitiator = false;
+		_isSocialPerforming = false;
+		_isWandering = false;
+		Velocity = Vector2.Zero;
+		CurrentAiState = interaction == SocialInteraction.Greeting ? "Greeting" : "BeingPushed";
+		return true;
+	}
+
+	private void UpdateSocialInteraction(float delta)
+	{
+		if (!IsInstanceValid(_socialPartner) || _socialPartner._socialPartner != this)
+		{
+			FinishSocialInteraction(false);
+			return;
+		}
+
+		if (!_isSocialPerforming)
+		{
+			if (!_isSocialInitiator)
+			{
+				Velocity = Vector2.Zero;
+				return;
+			}
+
+			if (GlobalPosition.DistanceTo(_socialPartner.GlobalPosition) > SocialArrivalDistance)
+			{
+				Velocity = GlobalPosition.DirectionTo(_socialPartner.GlobalPosition) * WanderSpeed;
+				return;
+			}
+
+			BeginSocialPerformance();
+			_socialPartner.BeginSocialPerformance();
+		}
+
+		_socialTimeRemaining -= delta;
+		Velocity = Vector2.Zero;
+
+		if (_socialInteraction == SocialInteraction.Push && !_isSocialInitiator && _pushTimeRemaining > 0.0f)
+		{
+			_pushTimeRemaining -= delta;
+			Velocity = _pushDirection * PushSpeed;
+		}
+
+		if (_socialTimeRemaining <= 0.0f)
+			FinishSocialInteraction(true);
+	}
+
+	private void BeginSocialPerformance()
+	{
+		_isSocialPerforming = true;
+		_socialTimeRemaining = SocialReactionDuration;
+		_socialHappyMark.Visible = _socialInteraction == SocialInteraction.Greeting;
+		_socialPushMark.Visible = _socialInteraction == SocialInteraction.Push;
+		_neutralMark.Visible = false;
+
+		if (_socialInteraction == SocialInteraction.Push && !_isSocialInitiator)
+		{
+			_pushTimeRemaining = PushDuration;
+			_pushDirection = _socialPartner.GlobalPosition.DirectionTo(GlobalPosition);
+			if (_pushDirection == Vector2.Zero)
+				_pushDirection = Vector2.Right;
+		}
+	}
+
+	private void CancelSocialInteraction()
+	{
+		if (_socialInteraction != SocialInteraction.None)
+			FinishSocialInteraction(true);
+	}
+
+	private void FinishSocialInteraction(bool notifyPartner)
+	{
+		Creature partner = _socialPartner;
+		_socialPartner = null;
+		_socialInteraction = SocialInteraction.None;
+		_isSocialInitiator = false;
+		_isSocialPerforming = false;
+		_socialHappyMark.Visible = false;
+		_socialPushMark.Visible = false;
+		_neutralMark.Visible = true;
+		Velocity = Vector2.Zero;
+		BeginIdle();
+
+		if (notifyPartner && IsInstanceValid(partner) && partner._socialPartner == this)
+			partner.FinishSocialInteraction(false);
+	}
+
 	private void UpdateReaction(float delta)
 	{
 		_reactionTimeRemaining -= delta;
@@ -302,6 +493,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private void BeginWandering()
 	{
+		if (TryBeginSocialInteraction())
+			return;
+
 		if (TryBeginInvestigation())
 			return;
 

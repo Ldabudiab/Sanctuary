@@ -7,7 +7,7 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
 radius = 15.0
 
-[node name="Creature" type="CharacterBody2D" unique_id=1480241217]
+[node name="Creature" type="CharacterBody2D" unique_id=1480241217 groups=["creatures"]]
 collision_layer = 4
 collision_mask = 1
 script = ExtResource("1_creature")
@@ -85,6 +85,30 @@ theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.16, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 16
 text = "?"
+
+[node name="SocialHappyMark" type="Label" parent="NeutralIndicator"]
+visible = false
+offset_left = -7.0
+offset_top = -13.0
+offset_right = 10.0
+offset_bottom = 10.0
+theme_override_colors/font_color = Color(1, 0.35, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.16, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 16
+text = "♥"
+
+[node name="SocialPushMark" type="Label" parent="NeutralIndicator"]
+visible = false
+offset_left = -4.0
+offset_top = -13.0
+offset_right = 8.0
+offset_bottom = 10.0
+theme_override_colors/font_color = Color(1, 0.75, 0.18, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.16, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 16
+text = "!"
 
 [node name="Needs" type="Node" parent="." unique_id=1588014957]
 script = ExtResource("2_needs")

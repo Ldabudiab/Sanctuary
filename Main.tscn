@@ -92,6 +92,8 @@ position = Vector2(780, 300)
 Activity = 80.0
 Attachment = 80.0
 Curiosity = 80.0
+Social = 80.0
+Temperament = -80.0
 
 [node name="Creature2" parent="." instance=ExtResource("3_creature")]
 position = Vector2(900, 500)
@@ -100,6 +102,8 @@ position = Vector2(900, 500)
 Activity = -80.0
 Attachment = -80.0
 Curiosity = -80.0
+Social = 80.0
+Temperament = 80.0
 
 [node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
 position = Vector2(480, 360)
@@ -113,18 +117,18 @@ layer = 10
 [node name="Background" type="ColorRect" parent="DebugUI" unique_id=2060253970]
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 222.0
-offset_bottom = 362.0
+offset_right = 238.0
+offset_bottom = 350.0
 mouse_filter = 2
 color = Color(0.04, 0.05, 0.06, 0.82)
 
 [node name="Creature1" type="Label" parent="DebugUI" unique_id=1866103667]
 offset_left = 22.0
 offset_top = 20.0
-offset_right = 212.0
-offset_bottom = 178.0
+offset_right = 228.0
+offset_bottom = 174.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "Creature 1
 State: Idle
 Hunger: 100
@@ -132,7 +136,9 @@ Happiness: 50
 Energy: 55
 Activity: 80
 Attachment: 80
-Curiosity: 80"
+Curiosity: 80
+Social: 80
+Temperament: -80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 1"
 NeedsPath = NodePath("../../Creature1/Needs")
@@ -141,11 +147,11 @@ CreaturePath = NodePath("../../Creature1")
 
 [node name="Creature2" type="Label" parent="DebugUI"]
 offset_left = 22.0
-offset_top = 182.0
-offset_right = 212.0
-offset_bottom = 352.0
+offset_top = 178.0
+offset_right = 228.0
+offset_bottom = 340.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "Creature 2
 State: Idle
 Hunger: 100
@@ -153,7 +159,9 @@ Happiness: 50
 Energy: 55
 Activity: -80
 Attachment: -80
-Curiosity: -80"
+Curiosity: -80
+Social: 80
+Temperament: 80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 2"
 NeedsPath = NodePath("../../Creature2/Needs")
