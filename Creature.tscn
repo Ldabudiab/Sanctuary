@@ -3,50 +3,29 @@
 [ext_resource type="Script" uid="uid://b48ybth6gnjg8" path="res://Creature.cs" id="1_creature"]
 [ext_resource type="Script" uid="uid://dfsppbq0kmusd" path="res://CreatureNeeds.cs" id="2_needs"]
 [ext_resource type="Script" uid="uid://cciih6e2vi586" path="res://CreaturePersonality.cs" id="3_personality"]
+[ext_resource type="PackedScene" path="res://CreatureVisual.tscn" id="4_visual"]
+[ext_resource type="Texture2D" path="res://Assets/Creatures/Base/base_creature_orb.png" id="5_orb"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
-radius = 15.0
+radius = 12.0
 
 [node name="Creature" type="CharacterBody2D" unique_id=1480241217 groups=["creatures"]]
 collision_layer = 4
 collision_mask = 1
 script = ExtResource("1_creature")
 
-[node name="Visual" type="Node2D" parent="." unique_id=1995447876]
-
-[node name="Body" type="Polygon2D" parent="Visual" unique_id=13275274]
-color = Color(0.86, 0.48, 0.64, 1)
-polygon = PackedVector2Array(-16, -7, -12, -14, -5, -18, 5, -18, 12, -14, 16, -7, 16, 7, 11, 14, 4, 17, -4, 17, -11, 14, -16, 7)
-
-[node name="LeftEar" type="Polygon2D" parent="Visual" unique_id=1423025743]
-color = Color(0.95, 0.62, 0.74, 1)
-polygon = PackedVector2Array(-13, -12, -18, -23, -7, -17)
-
-[node name="RightEar" type="Polygon2D" parent="Visual" unique_id=1847925465]
-color = Color(0.95, 0.62, 0.74, 1)
-polygon = PackedVector2Array(13, -12, 18, -23, 7, -17)
-
-[node name="LeftEye" type="Polygon2D" parent="Visual" unique_id=84477370]
-color = Color(0.1, 0.08, 0.12, 1)
-polygon = PackedVector2Array(-8, -5, -4, -5, -4, -1, -8, -1)
-
-[node name="RightEye" type="Polygon2D" parent="Visual" unique_id=654453222]
-color = Color(0.1, 0.08, 0.12, 1)
-polygon = PackedVector2Array(4, -5, 8, -5, 8, -1, 4, -1)
-
-[node name="Muzzle" type="Polygon2D" parent="Visual" unique_id=1459554095]
-color = Color(1, 0.76, 0.8, 1)
-polygon = PackedVector2Array(-5, 2, 5, 2, 3, 9, -3, 9)
+[node name="Visual" parent="." instance=ExtResource("4_visual")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1665040533]
 shape = SubResource("CircleShape2D_creature")
 
 [node name="NeutralIndicator" type="Node2D" parent="." unique_id=1047675460]
-position = Vector2(0, -37)
+position = Vector2(0, -29)
 
-[node name="Bubble" type="Polygon2D" parent="NeutralIndicator" unique_id=689743733]
-color = Color(0.88, 0.91, 0.92, 1)
-polygon = PackedVector2Array(-8, -5, -5, -9, 5, -9, 8, -5, 8, 4, 4, 8, -4, 8, -8, 4)
+[node name="Orb" type="Sprite2D" parent="NeutralIndicator"]
+texture_filter = 1
+scale = Vector2(0.027, 0.027)
+texture = ExtResource("5_orb")
 
 [node name="NeutralMark" type="Polygon2D" parent="NeutralIndicator" unique_id=1478885205]
 color = Color(0.32, 0.36, 0.4, 1)

@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://Assets/Creatures/Base/base_creature_idle.png" id="1_idle"]
+
+[node name="Visual" type="Node2D"]
+
+[node name="BaseSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -2.25)
+scale = Vector2(0.03375, 0.03375)
+texture = ExtResource("1_idle")
