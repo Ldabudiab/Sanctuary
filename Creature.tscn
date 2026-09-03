@@ -47,3 +47,8 @@ color = Color(0.88, 0.91, 0.92, 1)
 [node name="NeutralMark" type="Polygon2D" parent="NeutralIndicator"]
 polygon = PackedVector2Array(-4, -1, 4, -1, 4, 1, -4, 1)
 color = Color(0.32, 0.36, 0.4, 1)
+
+[node name="Heart" type="Polygon2D" parent="NeutralIndicator"]
+visible = false
+polygon = PackedVector2Array(0, 8, -9, 0, -9, -5, -5, -9, 0, -5, 5, -9, 9, -5, 9, 0)
+color = Color(0.95, 0.2, 0.32, 1)

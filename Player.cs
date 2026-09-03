@@ -8,10 +8,24 @@ public partial class Player : CharacterBody2D
 	public Vector2 FacingDirection { get; private set; } = Vector2.Down;
 
 	private Node2D _visual = null!;
+	private Area2D _interactionArea = null!;
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
+		_interactionArea = GetNode<Area2D>("InteractionArea");
+	}
+
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		if (@event is InputEventKey keyEvent
+			&& keyEvent.Pressed
+			&& !keyEvent.Echo
+			&& (keyEvent.Keycode == Key.E || keyEvent.PhysicalKeycode == Key.E))
+		{
+			TryInteract();
+			GetViewport().SetInputAsHandled();
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -35,5 +49,26 @@ public partial class Player : CharacterBody2D
 
 		Velocity = inputDirection.Normalized() * MovementSpeed;
 		MoveAndSlide();
+	}
+
+	private void TryInteract()
+	{
+		IInteractable closestInteractable = null;
+		float closestDistanceSquared = float.MaxValue;
+
+		foreach (Node2D body in _interactionArea.GetOverlappingBodies())
+		{
+			if (body is not IInteractable interactable)
+				continue;
+
+			float distanceSquared = GlobalPosition.DistanceSquaredTo(body.GlobalPosition);
+			if (distanceSquared < closestDistanceSquared)
+			{
+				closestDistanceSquared = distanceSquared;
+				closestInteractable = interactable;
+			}
+		}
+
+		closestInteractable?.TryInteract(this);
 	}
 }
