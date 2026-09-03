@@ -24,12 +24,17 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float EatReactionDuration { get; set; } = 2.0f;
 
+	[Export]
+	public float PlayerApproachRange { get; set; } = 320.0f;
+
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
 	private Polygon2D _neutralMark = null!;
 	private Polygon2D _heart = null!;
 	private Polygon2D _eatingMark = null!;
 	private CreatureNeeds _needs = null!;
+	private CreaturePersonality _personality = null!;
+	private Player _player = null!;
 	private Vector2 _wanderDirection;
 	private float _stateTimeRemaining;
 	private float _reactionTimeRemaining;
@@ -44,6 +49,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_heart = GetNode<Polygon2D>("NeutralIndicator/Heart");
 		_eatingMark = GetNode<Polygon2D>("NeutralIndicator/EatingMark");
 		_needs = GetNode<CreatureNeeds>("Needs");
+		_personality = GetNode<CreaturePersonality>("Personality");
+		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 		_random.Randomize();
 		BeginIdle();
 	}
@@ -83,11 +90,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 				return false;
 
 			_needs.ApplyFeeding();
+			_personality.ApplyFeeding();
 			BeginReaction(Reaction.Eating, EatReactionDuration);
 		}
 		else
 		{
 			_needs.ApplyPetting();
+			_personality.ApplyPetting();
 			BeginReaction(Reaction.Petting, PetReactionDuration);
 		}
 
@@ -125,13 +134,25 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private void BeginIdle()
 	{
 		_isWandering = false;
-		_stateTimeRemaining = _random.RandfRange(IdleDurationRange.X, IdleDurationRange.Y);
+		float energyWeight = (_personality.Energy + 100.0f) / 200.0f;
+		float durationMultiplier = Mathf.Lerp(1.5f, 0.6f, energyWeight);
+		_stateTimeRemaining = _random.RandfRange(IdleDurationRange.X, IdleDurationRange.Y) * durationMultiplier;
 	}
 
 	private void BeginWandering()
 	{
 		_isWandering = true;
-		_stateTimeRemaining = _random.RandfRange(WanderDurationRange.X, WanderDurationRange.Y);
-		_wanderDirection = Vector2.Right.Rotated(_random.RandfRange(0.0f, Mathf.Tau));
+		float energyWeight = (_personality.Energy + 100.0f) / 200.0f;
+		float durationMultiplier = Mathf.Lerp(0.6f, 1.5f, energyWeight);
+		_stateTimeRemaining = _random.RandfRange(WanderDurationRange.X, WanderDurationRange.Y) * durationMultiplier;
+
+		float attachmentWeight = (_personality.Attachment + 100.0f) / 200.0f;
+		float approachChance = Mathf.Lerp(0.03f, 0.35f, attachmentWeight);
+		bool playerIsNearby = _player != null && GlobalPosition.DistanceTo(_player.GlobalPosition) <= PlayerApproachRange;
+
+		if (playerIsNearby && _random.Randf() < approachChance)
+			_wanderDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+		else
+			_wanderDirection = Vector2.Right.Rotated(_random.RandfRange(0.0f, Mathf.Tau));
 	}
 }

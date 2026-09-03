@@ -1,9 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://7d75rgmdnque"]
+[gd_scene format=3 uid="uid://7d75rgmdnque"]
 
 [ext_resource type="Script" uid="uid://b0kxhptm7a6xq" path="res://Main.cs" id="1_glv2v"]
 [ext_resource type="PackedScene" path="res://Player.tscn" id="2_player"]
-[ext_resource type="PackedScene" path="res://Creature.tscn" id="3_creature"]
-[ext_resource type="Script" path="res://CreatureNeedsDebug.cs" id="4_needs_debug"]
+[ext_resource type="PackedScene" uid="uid://f8e668ign7pb" path="res://Creature.tscn" id="3_creature"]
+[ext_resource type="Script" uid="uid://b6nxqi5djir02" path="res://CreatureNeedsDebug.cs" id="4_needs_debug"]
 [ext_resource type="PackedScene" path="res://Food.tscn" id="5_food"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
@@ -15,100 +15,103 @@ size = Vector2(16, 752)
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
 
-[node name="RoomBackground" type="Polygon2D" parent="."]
+[node name="RoomBackground" type="Polygon2D" parent="." unique_id=453430028]
 z_index = -2
-polygon = PackedVector2Array(0, 0, 1280, 0, 1280, 720, 0, 720)
 color = Color(0.22, 0.42, 0.25, 1)
+polygon = PackedVector2Array(0, 0, 1280, 0, 1280, 720, 0, 720)
 
-[node name="SanctuaryVisuals" type="Node2D" parent="."]
+[node name="SanctuaryVisuals" type="Node2D" parent="." unique_id=306514437]
 z_index = -1
 
-[node name="HorizontalPath" type="Polygon2D" parent="SanctuaryVisuals"]
+[node name="HorizontalPath" type="Polygon2D" parent="SanctuaryVisuals" unique_id=1129609144]
+color = Color(0.57, 0.46, 0.31, 1)
 polygon = PackedVector2Array(0, 320, 1280, 320, 1280, 400, 0, 400)
-color = Color(0.57, 0.46, 0.31, 1)
 
-[node name="VerticalPath" type="Polygon2D" parent="SanctuaryVisuals"]
+[node name="VerticalPath" type="Polygon2D" parent="SanctuaryVisuals" unique_id=93109671]
+color = Color(0.57, 0.46, 0.31, 1)
 polygon = PackedVector2Array(600, 0, 680, 0, 680, 720, 600, 720)
-color = Color(0.57, 0.46, 0.31, 1)
 
-[node name="Pond" type="Polygon2D" parent="SanctuaryVisuals"]
-polygon = PackedVector2Array(900, 110, 970, 80, 1050, 90, 1100, 135, 1080, 200, 1010, 225, 930, 205, 890, 160)
+[node name="Pond" type="Polygon2D" parent="SanctuaryVisuals" unique_id=866378521]
 color = Color(0.2, 0.55, 0.68, 1)
+polygon = PackedVector2Array(900, 110, 970, 80, 1050, 90, 1100, 135, 1080, 200, 1010, 225, 930, 205, 890, 160)
 
-[node name="PlantingPatchLeft" type="Polygon2D" parent="SanctuaryVisuals"]
+[node name="PlantingPatchLeft" type="Polygon2D" parent="SanctuaryVisuals" unique_id=1335572300]
+color = Color(0.14, 0.32, 0.17, 1)
 polygon = PackedVector2Array(120, 100, 360, 100, 360, 220, 120, 220)
-color = Color(0.14, 0.32, 0.17, 1)
 
-[node name="PlantingPatchRight" type="Polygon2D" parent="SanctuaryVisuals"]
+[node name="PlantingPatchRight" type="Polygon2D" parent="SanctuaryVisuals" unique_id=1285634891]
+color = Color(0.14, 0.32, 0.17, 1)
 polygon = PackedVector2Array(920, 500, 1160, 500, 1160, 620, 920, 620)
-color = Color(0.14, 0.32, 0.17, 1)
 
-[node name="RoomBorder" type="Line2D" parent="."]
+[node name="RoomBorder" type="Line2D" parent="." unique_id=1558716899]
 z_index = -1
 points = PackedVector2Array(0, 0, 1280, 0, 1280, 720, 0, 720, 0, 0)
 width = 4.0
 default_color = Color(0.45, 0.55, 0.7, 1)
 
-[node name="RoomCenterMarker" type="Line2D" parent="."]
+[node name="RoomCenterMarker" type="Line2D" parent="." unique_id=2096240283]
 z_index = -1
 points = PackedVector2Array(620, 360, 660, 360, 640, 360, 640, 340, 640, 380)
 width = 2.0
 default_color = Color(0.25, 0.32, 0.42, 1)
 
-[node name="Walls" type="Node2D" parent="."]
+[node name="Walls" type="Node2D" parent="." unique_id=1112174750]
 
-[node name="TopWall" type="StaticBody2D" parent="Walls"]
+[node name="TopWall" type="StaticBody2D" parent="Walls" unique_id=1898653551]
 position = Vector2(640, -8)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/TopWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/TopWall" unique_id=587974690]
 shape = SubResource("RectangleShape2D_horizontal_wall")
 
-[node name="BottomWall" type="StaticBody2D" parent="Walls"]
+[node name="BottomWall" type="StaticBody2D" parent="Walls" unique_id=223773475]
 position = Vector2(640, 728)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/BottomWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/BottomWall" unique_id=819442547]
 shape = SubResource("RectangleShape2D_horizontal_wall")
 
-[node name="LeftWall" type="StaticBody2D" parent="Walls"]
+[node name="LeftWall" type="StaticBody2D" parent="Walls" unique_id=180457965]
 position = Vector2(-8, 360)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/LeftWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/LeftWall" unique_id=605853960]
 shape = SubResource("RectangleShape2D_vertical_wall")
 
-[node name="RightWall" type="StaticBody2D" parent="Walls"]
+[node name="RightWall" type="StaticBody2D" parent="Walls" unique_id=45019491]
 position = Vector2(1288, 360)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/RightWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/RightWall" unique_id=375715528]
 shape = SubResource("RectangleShape2D_vertical_wall")
 
-[node name="Player" parent="." instance=ExtResource("2_player")]
+[node name="Player" parent="." unique_id=822421653 instance=ExtResource("2_player")]
 position = Vector2(640, 360)
 
-[node name="Creature" parent="." instance=ExtResource("3_creature")]
+[node name="Creature" parent="." unique_id=724159373 instance=ExtResource("3_creature")]
 position = Vector2(800, 440)
 
-[node name="Food" parent="." instance=ExtResource("5_food")]
+[node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
 position = Vector2(480, 360)
 
-[node name="DebugUI" type="CanvasLayer" parent="."]
+[node name="DebugUI" type="CanvasLayer" parent="." unique_id=1106291833]
 layer = 10
 
-[node name="Background" type="ColorRect" parent="DebugUI"]
+[node name="Background" type="ColorRect" parent="DebugUI" unique_id=2060253970]
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 190.0
-offset_bottom = 74.0
-color = Color(0.04, 0.05, 0.06, 0.82)
+offset_bottom = 114.0
 mouse_filter = 2
+color = Color(0.04, 0.05, 0.06, 0.82)
 
-[node name="CreatureNeeds" type="Label" parent="DebugUI"]
+[node name="CreatureNeeds" type="Label" parent="DebugUI" unique_id=1866103667]
 offset_left = 22.0
 offset_top = 20.0
 offset_right = 180.0
-offset_bottom = 68.0
+offset_bottom = 108.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "Hunger: 100\nHappiness: 50"
-mouse_filter = 2
+text = "Hunger: 100
+Happiness: 50
+Energy: 0
+Attachment: 0"
 script = ExtResource("4_needs_debug")
 NeedsPath = NodePath("../../Creature/Needs")
+PersonalityPath = NodePath("../../Creature/Personality")
