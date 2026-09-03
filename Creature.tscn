@@ -1,0 +1,49 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Creature.cs" id="1_creature"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
+radius = 15.0
+
+[node name="Creature" type="CharacterBody2D"]
+script = ExtResource("1_creature")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-16, -7, -12, -14, -5, -18, 5, -18, 12, -14, 16, -7, 16, 7, 11, 14, 4, 17, -4, 17, -11, 14, -16, 7)
+color = Color(0.86, 0.48, 0.64, 1)
+
+[node name="LeftEar" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-13, -12, -18, -23, -7, -17)
+color = Color(0.95, 0.62, 0.74, 1)
+
+[node name="RightEar" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(13, -12, 18, -23, 7, -17)
+color = Color(0.95, 0.62, 0.74, 1)
+
+[node name="LeftEye" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-8, -5, -4, -5, -4, -1, -8, -1)
+color = Color(0.1, 0.08, 0.12, 1)
+
+[node name="RightEye" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(4, -5, 8, -5, 8, -1, 4, -1)
+color = Color(0.1, 0.08, 0.12, 1)
+
+[node name="Muzzle" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-5, 2, 5, 2, 3, 9, -3, 9)
+color = Color(1, 0.76, 0.8, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_creature")
+
+[node name="NeutralIndicator" type="Node2D" parent="."]
+position = Vector2(0, -37)
+
+[node name="Bubble" type="Polygon2D" parent="NeutralIndicator"]
+polygon = PackedVector2Array(-8, -5, -5, -9, 5, -9, 8, -5, 8, 4, 4, 8, -4, 8, -8, 4)
+color = Color(0.88, 0.91, 0.92, 1)
+
+[node name="NeutralMark" type="Polygon2D" parent="NeutralIndicator"]
+polygon = PackedVector2Array(-4, -1, 4, -1, 4, 1, -4, 1)
+color = Color(0.32, 0.36, 0.4, 1)
