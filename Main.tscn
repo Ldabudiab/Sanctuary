@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://f8e668ign7pb" path="res://Creature.tscn" id="3_creature"]
 [ext_resource type="Script" uid="uid://b6nxqi5djir02" path="res://CreatureNeedsDebug.cs" id="4_needs_debug"]
 [ext_resource type="PackedScene" path="res://Food.tscn" id="5_food"]
+[ext_resource type="PackedScene" path="res://InterestPoint.tscn" id="6_interest_point"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(1312, 16)
@@ -90,6 +91,7 @@ position = Vector2(780, 300)
 [node name="Personality" parent="Creature1" index="4"]
 Activity = 80.0
 Attachment = 80.0
+Curiosity = 80.0
 
 [node name="Creature2" parent="." instance=ExtResource("3_creature")]
 position = Vector2(900, 500)
@@ -97,9 +99,13 @@ position = Vector2(900, 500)
 [node name="Personality" parent="Creature2" index="4"]
 Activity = -80.0
 Attachment = -80.0
+Curiosity = -80.0
 
 [node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
 position = Vector2(480, 360)
+
+[node name="InterestPoint" parent="." instance=ExtResource("6_interest_point")]
+position = Vector2(1040, 360)
 
 [node name="DebugUI" type="CanvasLayer" parent="." unique_id=1106291833]
 layer = 10
@@ -108,7 +114,7 @@ layer = 10
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 222.0
-offset_bottom = 318.0
+offset_bottom = 362.0
 mouse_filter = 2
 color = Color(0.04, 0.05, 0.06, 0.82)
 
@@ -116,7 +122,7 @@ color = Color(0.04, 0.05, 0.06, 0.82)
 offset_left = 22.0
 offset_top = 20.0
 offset_right = 212.0
-offset_bottom = 158.0
+offset_bottom = 178.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
 text = "Creature 1
@@ -125,7 +131,8 @@ Hunger: 100
 Happiness: 50
 Energy: 55
 Activity: 80
-Attachment: 80"
+Attachment: 80
+Curiosity: 80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 1"
 NeedsPath = NodePath("../../Creature1/Needs")
@@ -134,9 +141,9 @@ CreaturePath = NodePath("../../Creature1")
 
 [node name="Creature2" type="Label" parent="DebugUI"]
 offset_left = 22.0
-offset_top = 162.0
+offset_top = 182.0
 offset_right = 212.0
-offset_bottom = 308.0
+offset_bottom = 352.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
 text = "Creature 2
@@ -145,7 +152,8 @@ Hunger: 100
 Happiness: 50
 Energy: 55
 Activity: -80
-Attachment: -80"
+Attachment: -80
+Curiosity: -80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 2"
 NeedsPath = NodePath("../../Creature2/Needs")

@@ -4,6 +4,7 @@ public partial class CreaturePersonality : Node
 {
 	private float _activity;
 	private float _attachment;
+	private float _curiosity;
 
 	[Export(PropertyHint.Range, "-100,100,1")]
 	public float Activity
@@ -17,6 +18,13 @@ public partial class CreaturePersonality : Node
 	{
 		get => _attachment;
 		set => _attachment = Mathf.Clamp(value, -100.0f, 100.0f);
+	}
+
+	[Export(PropertyHint.Range, "-100,100,1")]
+	public float Curiosity
+	{
+		get => _curiosity;
+		set => _curiosity = Mathf.Clamp(value, -100.0f, 100.0f);
 	}
 
 	public void ApplyPetting()

@@ -30,6 +30,15 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export(PropertyHint.Range, "0,100,1")]
 	public float WakeEnergyThreshold { get; set; } = 85.0f;
 
+	[Export]
+	public float InterestPointRange { get; set; } = 420.0f;
+
+	[Export]
+	public float InvestigationArrivalDistance { get; set; } = 28.0f;
+
+	[Export]
+	public float InvestigationDuration { get; set; } = 1.5f;
+
 	public string CurrentAiState { get; private set; } = "Idle";
 
 	private readonly RandomNumberGenerator _random = new();
@@ -38,15 +47,19 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private Polygon2D _heart = null!;
 	private Polygon2D _eatingMark = null!;
 	private Label _sleepMark = null!;
+	private Label _investigateMark = null!;
 	private CreatureNeeds _needs = null!;
 	private CreaturePersonality _personality = null!;
 	private Player _player = null!;
+	private InterestPoint _investigationTarget = null!;
 	private Vector2 _wanderDirection;
 	private float _stateTimeRemaining;
 	private float _reactionTimeRemaining;
 	private float _reactionElapsed;
 	private bool _isWandering;
 	private bool _isSleeping;
+	private bool _isInvestigating;
+	private bool _isExamining;
 	private Reaction _reaction;
 
 	public override void _Ready()
@@ -56,6 +69,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_heart = GetNode<Polygon2D>("NeutralIndicator/Heart");
 		_eatingMark = GetNode<Polygon2D>("NeutralIndicator/EatingMark");
 		_sleepMark = GetNode<Label>("NeutralIndicator/SleepMark");
+		_investigateMark = GetNode<Label>("NeutralIndicator/InvestigateMark");
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_personality = GetNode<CreaturePersonality>("Personality");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
@@ -87,6 +101,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 		}
 
 		_needs.TickAwake((float)delta);
+
+		if (_isInvestigating)
+		{
+			UpdateInvestigation((float)delta);
+			MoveAndSlide();
+			return;
+		}
 
 		_stateTimeRemaining -= (float)delta;
 
@@ -133,6 +154,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private void BeginReaction(Reaction reaction, float duration)
 	{
+		CancelInvestigation();
 		_reaction = reaction;
 		_isWandering = false;
 		CurrentAiState = reaction == Reaction.Petting ? "Petting" : "Eating";
@@ -152,6 +174,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private void BeginSleep()
 	{
+		CancelInvestigation();
 		_isSleeping = true;
 		_isWandering = false;
 		CurrentAiState = "Sleep";
@@ -167,6 +190,87 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_sleepMark.Visible = false;
 		_neutralMark.Visible = true;
 		BeginIdle();
+	}
+
+	private bool TryBeginInvestigation()
+	{
+		InterestPoint closestPoint = null;
+		float closestDistanceSquared = InterestPointRange * InterestPointRange;
+
+		foreach (Node node in GetTree().GetNodesInGroup("interest_points"))
+		{
+			if (node is not InterestPoint point)
+				continue;
+
+			float distanceSquared = GlobalPosition.DistanceSquaredTo(point.InvestigationPosition);
+			if (distanceSquared <= closestDistanceSquared)
+			{
+				closestDistanceSquared = distanceSquared;
+				closestPoint = point;
+			}
+		}
+
+		if (closestPoint == null)
+			return false;
+
+		float investigationChance = _personality.Curiosity >= 0.0f
+			? Mathf.Lerp(0.06f, 0.40f, _personality.Curiosity / 100.0f)
+			: Mathf.Lerp(0.06f, 0.005f, -_personality.Curiosity / 100.0f);
+
+		if (_random.Randf() >= investigationChance)
+			return false;
+
+		_investigationTarget = closestPoint;
+		_isInvestigating = true;
+		_isExamining = false;
+		_isWandering = false;
+		CurrentAiState = "Investigate";
+		_neutralMark.Visible = false;
+		_investigateMark.Visible = true;
+		return true;
+	}
+
+	private void UpdateInvestigation(float delta)
+	{
+		if (!IsInstanceValid(_investigationTarget))
+		{
+			FinishInvestigation();
+			return;
+		}
+
+		if (!_isExamining)
+		{
+			Vector2 targetPosition = _investigationTarget.InvestigationPosition;
+			if (GlobalPosition.DistanceTo(targetPosition) > InvestigationArrivalDistance)
+			{
+				Velocity = GlobalPosition.DirectionTo(targetPosition) * WanderSpeed;
+				return;
+			}
+
+			_isExamining = true;
+			_stateTimeRemaining = InvestigationDuration;
+			Velocity = Vector2.Zero;
+		}
+
+		_stateTimeRemaining -= delta;
+		if (_stateTimeRemaining <= 0.0f)
+			FinishInvestigation();
+	}
+
+	private void FinishInvestigation()
+	{
+		CancelInvestigation();
+		_neutralMark.Visible = true;
+		BeginIdle();
+	}
+
+	private void CancelInvestigation()
+	{
+		_isInvestigating = false;
+		_isExamining = false;
+		_investigationTarget = null;
+		_investigateMark.Visible = false;
+		Velocity = Vector2.Zero;
 	}
 
 	private void UpdateReaction(float delta)
@@ -198,6 +302,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private void BeginWandering()
 	{
+		if (TryBeginInvestigation())
+			return;
+
 		_isWandering = true;
 		float durationMultiplier = _personality.Activity >= 0.0f
 			? Mathf.Lerp(1.0f, 2.5f, _personality.Activity / 100.0f)

@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://InterestPoint.cs" id="1_interest_point"]
+
+[node name="InterestPoint" type="Node2D" groups=["interest_points"]]
+script = ExtResource("1_interest_point")
+
+[node name="Stem" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-2, 4, 2, 4, 2, 24, -2, 24)
+color = Color(0.18, 0.58, 0.22, 1)
+
+[node name="Center" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-6, -6, 6, -6, 6, 6, -6, 6)
+color = Color(1, 0.76, 0.16, 1)
+
+[node name="PetalTop" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-5, -7, 0, -16, 5, -7, 0, -3)
+color = Color(0.72, 0.42, 0.92, 1)
+
+[node name="PetalBottom" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-5, 7, 0, 16, 5, 7, 0, 3)
+color = Color(0.72, 0.42, 0.92, 1)
+
+[node name="PetalLeft" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-7, -5, -16, 0, -7, 5, -3, 0)
+color = Color(0.72, 0.42, 0.92, 1)
+
+[node name="PetalRight" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(7, -5, 16, 0, 7, 5, 3, 0)
+color = Color(0.72, 0.42, 0.92, 1)
