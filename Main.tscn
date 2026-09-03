@@ -88,14 +88,14 @@ position = Vector2(640, 360)
 position = Vector2(780, 300)
 
 [node name="Personality" parent="Creature1" index="4"]
-Energy = 80.0
+Activity = 80.0
 Attachment = 80.0
 
 [node name="Creature2" parent="." instance=ExtResource("3_creature")]
 position = Vector2(900, 500)
 
 [node name="Personality" parent="Creature2" index="4"]
-Energy = -80.0
+Activity = -80.0
 Attachment = -80.0
 
 [node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
@@ -108,7 +108,7 @@ layer = 10
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 222.0
-offset_bottom = 274.0
+offset_bottom = 318.0
 mouse_filter = 2
 color = Color(0.04, 0.05, 0.06, 0.82)
 
@@ -116,14 +116,15 @@ color = Color(0.04, 0.05, 0.06, 0.82)
 offset_left = 22.0
 offset_top = 20.0
 offset_right = 212.0
-offset_bottom = 138.0
+offset_bottom = 158.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
 text = "Creature 1
 State: Idle
 Hunger: 100
 Happiness: 50
-Energy: 80
+Energy: 55
+Activity: 80
 Attachment: 80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 1"
@@ -133,16 +134,17 @@ CreaturePath = NodePath("../../Creature1")
 
 [node name="Creature2" type="Label" parent="DebugUI"]
 offset_left = 22.0
-offset_top = 142.0
+offset_top = 162.0
 offset_right = 212.0
-offset_bottom = 264.0
+offset_bottom = 308.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
 text = "Creature 2
 State: Idle
 Hunger: 100
 Happiness: 50
-Energy: -80
+Energy: 55
+Activity: -80
 Attachment: -80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 2"

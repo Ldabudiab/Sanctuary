@@ -2,14 +2,14 @@ using Godot;
 
 public partial class CreaturePersonality : Node
 {
-	private float _energy;
+	private float _activity;
 	private float _attachment;
 
 	[Export(PropertyHint.Range, "-100,100,1")]
-	public float Energy
+	public float Activity
 	{
-		get => _energy;
-		set => _energy = Mathf.Clamp(value, -100.0f, 100.0f);
+		get => _activity;
+		set => _activity = Mathf.Clamp(value, -100.0f, 100.0f);
 	}
 
 	[Export(PropertyHint.Range, "-100,100,1")]

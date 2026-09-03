@@ -27,6 +27,6 @@ public partial class CreatureNeedsDebug : Label
 
 	public override void _Process(double delta)
 	{
-		Text = $"{CreatureLabel}\nState: {_creature.CurrentAiState}\nHunger: {_needs.Hunger:0}\nHappiness: {_needs.Happiness:0}\nEnergy: {_personality.Energy:0}\nAttachment: {_personality.Attachment:0}";
+		Text = $"{CreatureLabel}\nState: {_creature.CurrentAiState}\nHunger: {_needs.Hunger:0}\nHappiness: {_needs.Happiness:0}\nEnergy: {_needs.Energy:0}\nActivity: {_personality.Activity:0}\nAttachment: {_personality.Attachment:0}";
 	}
 }

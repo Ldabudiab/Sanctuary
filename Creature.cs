@@ -27,6 +27,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float PlayerApproachRange { get; set; } = 320.0f;
 
+	[Export(PropertyHint.Range, "0,100,1")]
+	public float WakeEnergyThreshold { get; set; } = 85.0f;
+
 	public string CurrentAiState { get; private set; } = "Idle";
 
 	private readonly RandomNumberGenerator _random = new();
@@ -34,6 +37,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private Polygon2D _neutralMark = null!;
 	private Polygon2D _heart = null!;
 	private Polygon2D _eatingMark = null!;
+	private Label _sleepMark = null!;
 	private CreatureNeeds _needs = null!;
 	private CreaturePersonality _personality = null!;
 	private Player _player = null!;
@@ -42,6 +46,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private float _reactionTimeRemaining;
 	private float _reactionElapsed;
 	private bool _isWandering;
+	private bool _isSleeping;
 	private Reaction _reaction;
 
 	public override void _Ready()
@@ -50,6 +55,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_neutralMark = GetNode<Polygon2D>("NeutralIndicator/NeutralMark");
 		_heart = GetNode<Polygon2D>("NeutralIndicator/Heart");
 		_eatingMark = GetNode<Polygon2D>("NeutralIndicator/EatingMark");
+		_sleepMark = GetNode<Label>("NeutralIndicator/SleepMark");
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_personality = GetNode<CreaturePersonality>("Personality");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
@@ -61,17 +67,34 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		if (_reaction != Reaction.None)
 		{
+			_needs.TickAwake((float)delta);
 			UpdateReaction((float)delta);
 			Velocity = Vector2.Zero;
 			MoveAndSlide();
 			return;
 		}
 
+		if (_isSleeping)
+		{
+			_needs.TickSleeping((float)delta);
+			Velocity = Vector2.Zero;
+
+			if (_needs.Energy >= WakeEnergyThreshold)
+				WakeUp();
+
+			MoveAndSlide();
+			return;
+		}
+
+		_needs.TickAwake((float)delta);
+
 		_stateTimeRemaining -= (float)delta;
 
 		if (_stateTimeRemaining <= 0.0f)
 		{
-			if (_isWandering)
+			if (ShouldSleep())
+				BeginSleep();
+			else if (_isWandering)
 				BeginIdle();
 			else
 				BeginWandering();
@@ -85,6 +108,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		if (_reaction != Reaction.None || interactor is not Player player)
 			return false;
+
+		if (_isSleeping)
+			WakeUp();
 
 		if (player.IsCarryingFood)
 		{
@@ -117,6 +143,32 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_eatingMark.Visible = reaction == Reaction.Eating;
 	}
 
+	private bool ShouldSleep()
+	{
+		float sleepChance = 1.0f / (1.0f + Mathf.Exp((_needs.Energy - 30.0f) / 8.0f));
+		sleepChance = Mathf.Clamp(sleepChance, 0.01f, 0.95f);
+		return _random.Randf() < sleepChance;
+	}
+
+	private void BeginSleep()
+	{
+		_isSleeping = true;
+		_isWandering = false;
+		CurrentAiState = "Sleep";
+		_neutralMark.Visible = false;
+		_heart.Visible = false;
+		_eatingMark.Visible = false;
+		_sleepMark.Visible = true;
+	}
+
+	private void WakeUp()
+	{
+		_isSleeping = false;
+		_sleepMark.Visible = false;
+		_neutralMark.Visible = true;
+		BeginIdle();
+	}
+
 	private void UpdateReaction(float delta)
 	{
 		_reactionTimeRemaining -= delta;
@@ -138,18 +190,18 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		_isWandering = false;
 		CurrentAiState = "Idle";
-		float durationMultiplier = _personality.Energy >= 0.0f
-			? Mathf.Lerp(1.0f, 0.35f, _personality.Energy / 100.0f)
-			: Mathf.Lerp(1.0f, 3.0f, -_personality.Energy / 100.0f);
+		float durationMultiplier = _personality.Activity >= 0.0f
+			? Mathf.Lerp(1.0f, 0.35f, _personality.Activity / 100.0f)
+			: Mathf.Lerp(1.0f, 3.0f, -_personality.Activity / 100.0f);
 		_stateTimeRemaining = _random.RandfRange(IdleDurationRange.X, IdleDurationRange.Y) * durationMultiplier;
 	}
 
 	private void BeginWandering()
 	{
 		_isWandering = true;
-		float durationMultiplier = _personality.Energy >= 0.0f
-			? Mathf.Lerp(1.0f, 2.5f, _personality.Energy / 100.0f)
-			: Mathf.Lerp(1.0f, 0.35f, -_personality.Energy / 100.0f);
+		float durationMultiplier = _personality.Activity >= 0.0f
+			? Mathf.Lerp(1.0f, 2.5f, _personality.Activity / 100.0f)
+			: Mathf.Lerp(1.0f, 0.35f, -_personality.Activity / 100.0f);
 		_stateTimeRemaining = _random.RandfRange(WanderDurationRange.X, WanderDurationRange.Y) * durationMultiplier;
 
 		float approachChance = _personality.Attachment >= 0.0f
