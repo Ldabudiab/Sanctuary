@@ -27,6 +27,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float PlayerApproachRange { get; set; } = 320.0f;
 
+	public string CurrentAiState { get; private set; } = "Idle";
+
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
 	private Polygon2D _neutralMark = null!;
@@ -107,6 +109,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		_reaction = reaction;
 		_isWandering = false;
+		CurrentAiState = reaction == Reaction.Petting ? "Petting" : "Eating";
 		_reactionTimeRemaining = duration;
 		_reactionElapsed = 0.0f;
 		_neutralMark.Visible = false;
@@ -134,25 +137,35 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private void BeginIdle()
 	{
 		_isWandering = false;
-		float energyWeight = (_personality.Energy + 100.0f) / 200.0f;
-		float durationMultiplier = Mathf.Lerp(1.5f, 0.6f, energyWeight);
+		CurrentAiState = "Idle";
+		float durationMultiplier = _personality.Energy >= 0.0f
+			? Mathf.Lerp(1.0f, 0.35f, _personality.Energy / 100.0f)
+			: Mathf.Lerp(1.0f, 3.0f, -_personality.Energy / 100.0f);
 		_stateTimeRemaining = _random.RandfRange(IdleDurationRange.X, IdleDurationRange.Y) * durationMultiplier;
 	}
 
 	private void BeginWandering()
 	{
 		_isWandering = true;
-		float energyWeight = (_personality.Energy + 100.0f) / 200.0f;
-		float durationMultiplier = Mathf.Lerp(0.6f, 1.5f, energyWeight);
+		float durationMultiplier = _personality.Energy >= 0.0f
+			? Mathf.Lerp(1.0f, 2.5f, _personality.Energy / 100.0f)
+			: Mathf.Lerp(1.0f, 0.35f, -_personality.Energy / 100.0f);
 		_stateTimeRemaining = _random.RandfRange(WanderDurationRange.X, WanderDurationRange.Y) * durationMultiplier;
 
-		float attachmentWeight = (_personality.Attachment + 100.0f) / 200.0f;
-		float approachChance = Mathf.Lerp(0.03f, 0.35f, attachmentWeight);
+		float approachChance = _personality.Attachment >= 0.0f
+			? Mathf.Lerp(0.08f, 0.45f, _personality.Attachment / 100.0f)
+			: Mathf.Lerp(0.08f, 0.005f, -_personality.Attachment / 100.0f);
 		bool playerIsNearby = _player != null && GlobalPosition.DistanceTo(_player.GlobalPosition) <= PlayerApproachRange;
 
 		if (playerIsNearby && _random.Randf() < approachChance)
+		{
+			CurrentAiState = "ApproachPlayer";
 			_wanderDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+		}
 		else
+		{
+			CurrentAiState = "Wander";
 			_wanderDirection = Vector2.Right.Rotated(_random.RandfRange(0.0f, Mathf.Tau));
+		}
 	}
 }

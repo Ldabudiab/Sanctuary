@@ -9,6 +9,8 @@ size = Vector2(32, 32)
 radius = 60.0
 
 [node name="Player" type="CharacterBody2D" groups=["player"]]
+collision_layer = 2
+collision_mask = 1
 script = ExtResource("1_player")
 
 [node name="Visual" type="Node2D" parent="."]
@@ -56,6 +58,7 @@ color = Color(0.24, 0.62, 0.2, 1)
 
 [node name="InteractionArea" type="Area2D" parent="."]
 collision_layer = 0
+collision_mask = 12
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
 shape = SubResource("CircleShape2D_interaction")
