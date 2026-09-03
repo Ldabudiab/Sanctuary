@@ -42,6 +42,18 @@ shape = SubResource("RectangleShape2D_player")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
+[node name="CarriedFoodVisual" type="Node2D" parent="."]
+visible = false
+position = Vector2(18, -24)
+
+[node name="Fruit" type="Polygon2D" parent="CarriedFoodVisual"]
+polygon = PackedVector2Array(-7, 1, -6, -6, -2, -9, 3, -9, 7, -5, 7, 2, 4, 7, -4, 7)
+color = Color(0.95, 0.38, 0.12, 1)
+
+[node name="Leaf" type="Polygon2D" parent="CarriedFoodVisual"]
+polygon = PackedVector2Array(0, -8, 4, -13, 8, -12, 5, -8)
+color = Color(0.24, 0.62, 0.2, 1)
+
 [node name="InteractionArea" type="Area2D" parent="."]
 collision_layer = 0
 

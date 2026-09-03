@@ -54,5 +54,10 @@ visible = false
 polygon = PackedVector2Array(0, 8, -9, 0, -9, -5, -5, -9, 0, -5, 5, -9, 9, -5, 9, 0)
 color = Color(0.95, 0.2, 0.32, 1)
 
+[node name="EatingMark" type="Polygon2D" parent="NeutralIndicator"]
+visible = false
+polygon = PackedVector2Array(-7, 2, -6, -5, -2, -8, 3, -8, 7, -4, 7, 3, 3, 7, -3, 7)
+color = Color(0.95, 0.52, 0.12, 1)
+
 [node name="Needs" type="Node" parent="."]
 script = ExtResource("2_needs")

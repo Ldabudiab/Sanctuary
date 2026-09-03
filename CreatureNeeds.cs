@@ -14,6 +14,9 @@ public partial class CreatureNeeds : Node
 	[Export]
 	public float PetHappinessGain { get; set; } = 10.0f;
 
+	[Export]
+	public float FoodHungerRestore { get; set; } = 30.0f;
+
 	public float Hunger { get; private set; }
 	public float Happiness { get; private set; }
 
@@ -31,5 +34,10 @@ public partial class CreatureNeeds : Node
 	public void ApplyPetting()
 	{
 		Happiness = Mathf.Clamp(Happiness + PetHappinessGain, 0.0f, 100.0f);
+	}
+
+	public void ApplyFeeding()
+	{
+		Hunger = Mathf.Clamp(Hunger + FoodHungerRestore, 0.0f, 100.0f);
 	}
 }

@@ -2,6 +2,13 @@ using Godot;
 
 public partial class Creature : CharacterBody2D, IInteractable
 {
+	private enum Reaction
+	{
+		None,
+		Petting,
+		Eating
+	}
+
 	[Export]
 	public float WanderSpeed { get; set; } = 70.0f;
 
@@ -14,23 +21,28 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float PetReactionDuration { get; set; } = 1.5f;
 
+	[Export]
+	public float EatReactionDuration { get; set; } = 2.0f;
+
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
 	private Polygon2D _neutralMark = null!;
 	private Polygon2D _heart = null!;
+	private Polygon2D _eatingMark = null!;
 	private CreatureNeeds _needs = null!;
 	private Vector2 _wanderDirection;
 	private float _stateTimeRemaining;
-	private float _petTimeRemaining;
-	private float _petElapsed;
+	private float _reactionTimeRemaining;
+	private float _reactionElapsed;
 	private bool _isWandering;
-	private bool _isBeingPetted;
+	private Reaction _reaction;
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
 		_neutralMark = GetNode<Polygon2D>("NeutralIndicator/NeutralMark");
 		_heart = GetNode<Polygon2D>("NeutralIndicator/Heart");
+		_eatingMark = GetNode<Polygon2D>("NeutralIndicator/EatingMark");
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_random.Randomize();
 		BeginIdle();
@@ -38,9 +50,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_isBeingPetted)
+		if (_reaction != Reaction.None)
 		{
-			UpdatePetReaction((float)delta);
+			UpdateReaction((float)delta);
 			Velocity = Vector2.Zero;
 			MoveAndSlide();
 			return;
@@ -62,31 +74,50 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public bool TryInteract(Node interactor)
 	{
-		if (_isBeingPetted)
+		if (_reaction != Reaction.None || interactor is not Player player)
 			return false;
 
-		_isBeingPetted = true;
-		_isWandering = false;
-		_petTimeRemaining = PetReactionDuration;
-		_petElapsed = 0.0f;
-		_neutralMark.Visible = false;
-		_heart.Visible = true;
-		_needs.ApplyPetting();
+		if (player.IsCarryingFood)
+		{
+			if (!player.TryConsumeCarriedFood())
+				return false;
+
+			_needs.ApplyFeeding();
+			BeginReaction(Reaction.Eating, EatReactionDuration);
+		}
+		else
+		{
+			_needs.ApplyPetting();
+			BeginReaction(Reaction.Petting, PetReactionDuration);
+		}
+
 		return true;
 	}
 
-	private void UpdatePetReaction(float delta)
+	private void BeginReaction(Reaction reaction, float duration)
 	{
-		_petTimeRemaining -= delta;
-		_petElapsed += delta;
-		_visual.Position = Vector2.Up * Mathf.Abs(Mathf.Sin(_petElapsed * Mathf.Tau * 1.5f)) * 5.0f;
+		_reaction = reaction;
+		_isWandering = false;
+		_reactionTimeRemaining = duration;
+		_reactionElapsed = 0.0f;
+		_neutralMark.Visible = false;
+		_heart.Visible = reaction == Reaction.Petting;
+		_eatingMark.Visible = reaction == Reaction.Eating;
+	}
 
-		if (_petTimeRemaining > 0.0f)
+	private void UpdateReaction(float delta)
+	{
+		_reactionTimeRemaining -= delta;
+		_reactionElapsed += delta;
+		_visual.Position = Vector2.Up * Mathf.Abs(Mathf.Sin(_reactionElapsed * Mathf.Tau * 1.5f)) * 5.0f;
+
+		if (_reactionTimeRemaining > 0.0f)
 			return;
 
-		_isBeingPetted = false;
+		_reaction = Reaction.None;
 		_visual.Position = Vector2.Zero;
 		_heart.Visible = false;
+		_eatingMark.Visible = false;
 		_neutralMark.Visible = true;
 		BeginIdle();
 	}

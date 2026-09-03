@@ -6,14 +6,17 @@ public partial class Player : CharacterBody2D
 	public float MovementSpeed { get; set; } = 200.0f;
 
 	public Vector2 FacingDirection { get; private set; } = Vector2.Down;
+	public bool IsCarryingFood { get; private set; }
 
 	private Node2D _visual = null!;
 	private Area2D _interactionArea = null!;
+	private CanvasItem _carriedFoodVisual = null!;
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
 		_interactionArea = GetNode<Area2D>("InteractionArea");
+		_carriedFoodVisual = GetNode<CanvasItem>("CarriedFoodVisual");
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -69,6 +72,39 @@ public partial class Player : CharacterBody2D
 			}
 		}
 
+		foreach (Area2D area in _interactionArea.GetOverlappingAreas())
+		{
+			if (area is not IInteractable interactable)
+				continue;
+
+			float distanceSquared = GlobalPosition.DistanceSquaredTo(area.GlobalPosition);
+			if (distanceSquared < closestDistanceSquared)
+			{
+				closestDistanceSquared = distanceSquared;
+				closestInteractable = interactable;
+			}
+		}
+
 		closestInteractable?.TryInteract(this);
+	}
+
+	public bool TryPickupFood()
+	{
+		if (IsCarryingFood)
+			return false;
+
+		IsCarryingFood = true;
+		_carriedFoodVisual.Visible = true;
+		return true;
+	}
+
+	public bool TryConsumeCarriedFood()
+	{
+		if (!IsCarryingFood)
+			return false;
+
+		IsCarryingFood = false;
+		_carriedFoodVisual.Visible = false;
+		return true;
 	}
 }

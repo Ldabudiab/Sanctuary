@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Food.cs" id="1_food"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_food"]
+radius = 14.0
+
+[node name="Food" type="Area2D"]
+script = ExtResource("1_food")
+
+[node name="Plate" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-18, 8, 18, 8, 13, 14, -13, 14)
+color = Color(0.9, 0.9, 0.82, 1)
+
+[node name="Fruit" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-11, 2, -9, -7, -4, -12, 4, -12, 10, -7, 11, 2, 7, 9, -7, 9)
+color = Color(0.95, 0.38, 0.12, 1)
+
+[node name="Leaf" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -11, 5, -18, 11, -17, 7, -12)
+color = Color(0.24, 0.62, 0.2, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_food")
