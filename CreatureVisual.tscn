@@ -1,11 +1,35 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Texture2D" path="res://Assets/Creatures/Base/base_creature_idle.png" id="1_idle"]
+[ext_resource type="Script" path="res://CreatureVisualController.cs" id="2_controller"]
+
+[sub_resource type="Shader" id="Shader_appendage_sway"]
+code = "shader_type canvas_item;\n\nuniform vec2 torso_offset = vec2(0.0);\nuniform vec2 head_offset = vec2(0.0);\nuniform vec2 left_appendage_offset = vec2(0.0);\nuniform vec2 right_appendage_offset = vec2(0.0);\nuniform vec2 left_foot_offset = vec2(0.0);\nuniform vec2 right_foot_offset = vec2(0.0);\nuniform float torso_squash = 0.0;\n\nfloat box_mask(vec2 uv, vec2 minimum, vec2 maximum, float softness) {\n\tvec2 inside_min = smoothstep(minimum, minimum + vec2(softness), uv);\n\tvec2 inside_max = 1.0 - smoothstep(maximum - vec2(softness), maximum, uv);\n\treturn inside_min.x * inside_min.y * inside_max.x * inside_max.y;\n}\n\nvoid fragment() {\n\tfloat left_appendage = box_mask(UV, vec2(0.0, 0.14), vec2(0.35, 0.91), 0.045);\n\tfloat right_appendage = box_mask(UV, vec2(0.65, 0.14), vec2(1.0, 0.91), 0.045);\n\tfloat head = box_mask(UV, vec2(0.28, 0.08), vec2(0.72, 0.68), 0.05);\n\tfloat torso = box_mask(UV, vec2(0.36, 0.61), vec2(0.64, 0.89), 0.035);\n\tfloat left_foot = box_mask(UV, vec2(0.40, 0.75), vec2(0.50, 0.94), 0.02);\n\tfloat right_foot = box_mask(UV, vec2(0.50, 0.75), vec2(0.60, 0.94), 0.02);\n\tvec2 offset = left_appendage_offset * left_appendage\n\t\t+ right_appendage_offset * right_appendage\n\t\t+ head_offset * head\n\t\t+ torso_offset * torso\n\t\t+ left_foot_offset * left_foot\n\t\t+ right_foot_offset * right_foot;\n\tvec2 squash = vec2(0.0, (UV.y - 0.72) * torso_squash * torso);\n\tvec2 sample_uv = clamp(UV - offset + squash, vec2(0.0), vec2(1.0));\n\tCOLOR = texture(TEXTURE, sample_uv) * COLOR;\n}\n"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_appendage_sway"]
+resource_local_to_scene = true
+shader = SubResource("Shader_appendage_sway")
 
 [node name="Visual" type="Node2D"]
+script = ExtResource("2_controller")
 
 [node name="BaseSprite" type="Sprite2D" parent="."]
 texture_filter = 1
+material = SubResource("ShaderMaterial_appendage_sway")
 position = Vector2(0, -2.25)
 scale = Vector2(0.03375, 0.03375)
 texture = ExtResource("1_idle")
+
+[node name="Rig" type="Node2D" parent="."]
+
+[node name="TorsoPart" type="Node2D" parent="Rig"]
+
+[node name="HeadPart" type="Node2D" parent="Rig"]
+
+[node name="LeftAppendagePart" type="Node2D" parent="Rig"]
+
+[node name="RightAppendagePart" type="Node2D" parent="Rig"]
+
+[node name="LeftFootPart" type="Node2D" parent="Rig"]
+
+[node name="RightFootPart" type="Node2D" parent="Rig"]
