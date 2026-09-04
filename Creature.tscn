@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://dfsppbq0kmusd" path="res://CreatureNeeds.cs" id="2_needs"]
 [ext_resource type="Script" uid="uid://cciih6e2vi586" path="res://CreaturePersonality.cs" id="3_personality"]
 [ext_resource type="PackedScene" path="res://CreatureVisual.tscn" id="4_visual"]
-[ext_resource type="Texture2D" path="res://Assets/Creatures/Base/base_creature_orb.png" id="5_orb"]
 [ext_resource type="Script" path="res://CreatureStats.cs" id="6_stats"]
 [ext_resource type="Script" path="res://CreatureStamina.cs" id="7_stamina"]
 
@@ -33,12 +32,7 @@ script = ExtResource("1_creature")
 shape = SubResource("CircleShape2D_creature")
 
 [node name="NeutralIndicator" type="Node2D" parent="." unique_id=1047675460]
-position = Vector2(0, -29)
-
-[node name="Orb" type="Sprite2D" parent="NeutralIndicator"]
-texture_filter = 1
-scale = Vector2(0.027, 0.027)
-texture = ExtResource("5_orb")
+position = Vector2(0, -38)
 
 [node name="NeutralMark" type="Polygon2D" parent="NeutralIndicator" unique_id=1478885205]
 color = Color(0.32, 0.36, 0.4, 1)
@@ -129,7 +123,7 @@ script = ExtResource("7_stamina")
 
 [node name="StaminaDisplay" type="Node2D" parent="."]
 visible = false
-position = Vector2(0, -46)
+position = Vector2(0, -68)
 
 [node name="Bar" type="ProgressBar" parent="StaminaDisplay"]
 offset_left = -25.0

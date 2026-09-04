@@ -2,120 +2,128 @@ using Godot;
 
 public partial class CreatureVisualController : Node2D
 {
-	private static readonly Vector2 BaseSpritePosition = new(0.0f, -2.25f);
-	private static readonly Vector2 BaseSpriteScale = new(0.03375f, 0.03375f);
-	private static readonly Vector2 BaseIndicatorPosition = new(0.0f, -29.0f);
-	private static readonly Vector2 RenderedTextureSize = new(49.6125f, 36.1125f);
+	private const int FrameWidth = 160;
+	private const int FrameHeight = 160;
 
-	private CharacterBody2D _creature = null!;
-	private Sprite2D _sprite = null!;
-	private Node2D _indicator = null!;
-	private ShaderMaterial _material = null!;
-	private Node2D _torsoPart = null!;
-	private Node2D _headPart = null!;
-	private Node2D _leftAppendagePart = null!;
-	private Node2D _rightAppendagePart = null!;
-	private Node2D _leftFootPart = null!;
-	private Node2D _rightFootPart = null!;
-	private Vector2 _indicatorOffset;
-	private Vector2 _indicatorVelocity;
-	private float _animationTime;
+	[Export]
+	public Texture2D AnimationSheet { get; set; } = null!;
+
+	private Creature _creature = null!;
+	private AnimatedSprite2D _sprite = null!;
+	private float _actionOverrideTime;
 
 	public override void _Ready()
 	{
-		_creature = GetParent<CharacterBody2D>();
-		_sprite = GetNode<Sprite2D>("BaseSprite");
-		_indicator = GetNode<Node2D>("../NeutralIndicator");
-		_material = (ShaderMaterial)_sprite.Material;
-		_torsoPart = GetNode<Node2D>("Rig/TorsoPart");
-		_headPart = GetNode<Node2D>("Rig/HeadPart");
-		_leftAppendagePart = GetNode<Node2D>("Rig/LeftAppendagePart");
-		_rightAppendagePart = GetNode<Node2D>("Rig/RightAppendagePart");
-		_leftFootPart = GetNode<Node2D>("Rig/LeftFootPart");
-		_rightFootPart = GetNode<Node2D>("Rig/RightFootPart");
+		_creature = GetParent<Creature>();
+		_sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		_sprite.SpriteFrames = BuildSpriteFrames();
+		PlayIfChanged("idle");
 	}
 
 	public override void _Process(double delta)
 	{
-		float frameDelta = (float)delta;
-		_animationTime += frameDelta;
-		bool isWalking = _creature.Velocity.LengthSquared() > 1.0f;
-
 		if (Mathf.Abs(_creature.Velocity.X) > 1.0f)
-			_sprite.FlipH = _creature.Velocity.X < 0.0f;
+			FaceHorizontal(_creature.Velocity.X);
 
-		if (isWalking)
-			AnimateWalk(frameDelta);
-		else
-			AnimateIdle(frameDelta);
+		if (_actionOverrideTime > 0.0f)
+		{
+			_actionOverrideTime = Mathf.Max(0.0f, _actionOverrideTime - (float)delta);
+			if (_actionOverrideTime > 0.0f)
+				return;
+		}
 
-		ApplyRigToMaterial();
-	}
-
-	private void AnimateIdle(float delta)
-	{
-		float phase = _animationTime * 1.8f;
-		float breath = Mathf.Sin(phase);
-
-		_sprite.Position = BaseSpritePosition;
-		_sprite.Scale = BaseSpriteScale;
-		_torsoPart.Position = new Vector2(Mathf.Sin(phase * 0.45f) * 0.08f, -breath * 0.10f);
-		_torsoPart.Scale = new Vector2(1.0f - breath * 0.002f, 1.0f + breath * 0.006f);
-		_headPart.Position = new Vector2(Mathf.Sin(phase * 0.45f - 0.28f) * 0.12f, -Mathf.Sin(phase - 0.22f) * 0.22f);
-		_leftAppendagePart.Position = new Vector2(Mathf.Sin(phase * 0.72f + 0.4f) * 0.28f, Mathf.Sin(phase * 0.58f + 1.1f) * 0.18f);
-		_rightAppendagePart.Position = new Vector2(Mathf.Sin(phase * 0.67f + 2.5f) * 0.24f, Mathf.Sin(phase * 0.63f + 0.2f) * 0.21f);
-		_leftFootPart.Position = Vector2.Zero;
-		_rightFootPart.Position = Vector2.Zero;
-		UpdateIndicatorFollow(_headPart.Position * 0.65f + Vector2.Up * Mathf.Sin(phase * 0.7f) * 0.45f, delta);
-	}
-
-	private void AnimateWalk(float delta)
-	{
-		float phase = _animationTime * 8.0f;
-		float weightShift = Mathf.Sin(phase);
-		float contact = Mathf.Abs(weightShift);
-		float leftLift = Mathf.Max(0.0f, weightShift);
-		float rightLift = Mathf.Max(0.0f, -weightShift);
-
-		_sprite.Position = BaseSpritePosition;
-		_sprite.Scale = BaseSpriteScale;
-		_torsoPart.Position = new Vector2(weightShift * 0.38f, -contact * 0.28f);
-		_torsoPart.Scale = new Vector2(1.0f + contact * 0.006f, 1.0f - contact * 0.012f);
-		_headPart.Position = new Vector2(Mathf.Sin(phase - 0.42f) * 0.24f, -Mathf.Abs(Mathf.Sin(phase - 0.30f)) * 0.42f);
-		_leftFootPart.Position = new Vector2(-weightShift * 0.12f, -leftLift * 1.15f);
-		_rightFootPart.Position = new Vector2(-weightShift * 0.12f, -rightLift * 1.15f);
-		_leftAppendagePart.Position = new Vector2(-weightShift * 0.48f + Mathf.Sin(phase - 0.75f) * 0.18f, Mathf.Sin(phase - 0.55f) * 0.28f);
-		_rightAppendagePart.Position = new Vector2(-weightShift * 0.43f + Mathf.Sin(phase - 0.98f) * 0.16f, Mathf.Sin(phase - 0.82f) * 0.25f);
-		UpdateIndicatorFollow(_headPart.Position * 0.75f + new Vector2(-weightShift * 0.12f, -contact * 0.75f), delta);
-	}
-
-	private void UpdateIndicatorFollow(Vector2 targetOffset, float delta)
-	{
-		_indicatorVelocity += (targetOffset - _indicatorOffset) * 28.0f * delta;
-		_indicatorVelocity *= Mathf.Exp(-7.0f * delta);
-		_indicatorOffset += _indicatorVelocity * delta;
-		_indicator.Position = BaseIndicatorPosition + _indicatorOffset;
-	}
-
-	private void ApplyRigToMaterial()
-	{
-		_material.SetShaderParameter("torso_offset", ToUvOffset(_torsoPart.Position));
-		_material.SetShaderParameter("head_offset", ToUvOffset(_headPart.Position));
-		_material.SetShaderParameter("left_appendage_offset", ToUvOffset(_leftAppendagePart.Position));
-		_material.SetShaderParameter("right_appendage_offset", ToUvOffset(_rightAppendagePart.Position));
-		_material.SetShaderParameter("left_foot_offset", ToUvOffset(_leftFootPart.Position));
-		_material.SetShaderParameter("right_foot_offset", ToUvOffset(_rightFootPart.Position));
-		_material.SetShaderParameter("torso_squash", _torsoPart.Scale.Y - 1.0f);
-	}
-
-	private static Vector2 ToUvOffset(Vector2 pixelOffset)
-	{
-		return new Vector2(pixelOffset.X / RenderedTextureSize.X, pixelOffset.Y / RenderedTextureSize.Y);
+		PlayIfChanged(SelectAnimation());
 	}
 
 	public void FaceHorizontal(float horizontalDirection)
 	{
 		if (Mathf.Abs(horizontalDirection) > 0.01f)
 			_sprite.FlipH = horizontalDirection < 0.0f;
+	}
+
+	public void PlayAttack()
+	{
+		PlayActionOverride("attack", 0.55f);
+	}
+
+	public void PlayHurt()
+	{
+		PlayActionOverride("hurt", 0.45f);
+	}
+
+	private string SelectAnimation()
+	{
+		string state = _creature.CurrentAiState;
+
+		if (state.Contains("Sleep") || state.Contains("Nap"))
+			return "sleep";
+		if (state.Contains("Petting") || state.Contains("StatBoost"))
+			return "happy";
+		if (state.Contains("Eating"))
+			return "eat";
+
+		if (_creature.Velocity.LengthSquared() > 1.0f)
+		{
+			if (state == "Racing" || state.Contains("Running"))
+				return "run";
+			return "walk";
+		}
+
+		return "idle";
+	}
+
+	private void PlayActionOverride(string animation, float duration)
+	{
+		_actionOverrideTime = duration;
+		_sprite.Play(animation);
+	}
+
+	private void PlayIfChanged(string animation)
+	{
+		if (_sprite.Animation == animation && _sprite.IsPlaying())
+			return;
+
+		_sprite.Play(animation);
+	}
+
+	private SpriteFrames BuildSpriteFrames()
+	{
+		SpriteFrames frames = new();
+		frames.RemoveAnimation("default");
+		AddAnimation(frames, "idle", 0, 4, 3.5f, true);
+		AddAnimation(frames, "walk", 1, 6, 8.0f, true);
+		AddAnimation(frames, "run", 2, 6, 11.0f, true);
+		AddAnimation(frames, "sleep", 3, 6, 4.0f, true);
+		AddAnimation(frames, "happy", 4, 4, 6.0f, true);
+		AddAnimation(frames, "eat", 5, 6, 7.0f, true);
+		AddAnimation(frames, "attack", 6, 6, 11.0f, false);
+		AddAnimation(frames, "hurt", 7, 4, 9.0f, false);
+		return frames;
+	}
+
+	private void AddAnimation(
+		SpriteFrames frames,
+		StringName animationName,
+		int row,
+		int frameCount,
+		float framesPerSecond,
+		bool loop)
+	{
+		frames.AddAnimation(animationName);
+		frames.SetAnimationSpeed(animationName, framesPerSecond);
+		frames.SetAnimationLoopMode(
+			animationName,
+			loop ? SpriteFrames.LoopMode.Linear : SpriteFrames.LoopMode.None);
+
+		for (int column = 0; column < frameCount; column++)
+		{
+			AtlasTexture frame = new()
+			{
+				Atlas = AnimationSheet,
+				Region = new Rect2(column * FrameWidth, row * FrameHeight, FrameWidth, FrameHeight),
+				FilterClip = true
+			};
+			frames.AddFrame(animationName, frame);
+		}
 	}
 }

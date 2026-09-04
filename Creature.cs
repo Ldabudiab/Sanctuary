@@ -778,6 +778,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 		_fightLungeDirection = GlobalPosition.DirectionTo(opponentPosition);
 		_fightAttackVisualTime = 0.3f;
+		GetNode<CreatureVisualController>("Visual").PlayAttack();
 	}
 
 	public void ShowFightHit()
@@ -786,6 +787,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 			return;
 
 		_fightHitVisualTime = 0.35f;
+		GetNode<CreatureVisualController>("Visual").PlayHurt();
 		_socialPushMark.Visible = true;
 		_neutralMark.Visible = false;
 	}
