@@ -77,7 +77,10 @@ public partial class RaceActivity : Area2D, IInteractable
 
 	public bool TryInteract(Node interactor)
 	{
-		if (_state != RaceState.Ready || interactor is not Player)
+		if (_state != RaceState.Ready
+			|| interactor is not Player
+			|| !_creature1.CanBeginCompetition
+			|| !_creature2.CanBeginCompetition)
 			return false;
 
 		BeginRace();

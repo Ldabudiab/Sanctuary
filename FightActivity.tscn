@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://FightActivity.cs" id="1_fight"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_start"]
+radius = 24.0
+
+[node name="FightActivity" type="Area2D"]
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("1_fight")
+
+[node name="ArenaGround" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(800, 470, 1170, 470, 1190, 500, 1190, 625, 1170, 650, 800, 650, 780, 625, 780, 500)
+color = Color(0.48, 0.39, 0.27, 0.52)
+
+[node name="ArenaBorder" type="Line2D" parent="."]
+points = PackedVector2Array(800, 480, 1170, 480, 1180, 500, 1180, 620, 1165, 640, 805, 640, 790, 620, 790, 500, 800, 480)
+width = 5.0
+default_color = Color(0.58, 0.66, 0.4, 0.9)
+
+[node name="CenterMark" type="Line2D" parent="."]
+points = PackedVector2Array(985, 520, 985, 600)
+width = 2.0
+default_color = Color(0.88, 0.75, 0.5, 0.6)
+
+[node name="StartPost" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(1172, 526, 1188, 526, 1194, 544, 1188, 562, 1172, 562, 1166, 544)
+color = Color(0.66, 0.2, 0.22, 1)
+
+[node name="StartPostGem" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(1180, 514, 1188, 522, 1180, 530, 1172, 522)
+color = Color(1, 0.46, 0.42, 1)
+
+[node name="Prompt" type="Label" parent="."]
+offset_left = 1128.0
+offset_top = 568.0
+offset_right = 1228.0
+offset_bottom = 591.0
+theme_override_colors/font_color = Color(1, 0.82, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0.16, 0.08, 0.08, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "E: Start Fight"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(1180, 544)
+shape = SubResource("CircleShape2D_start")
+
+[node name="Creature1Position" type="Marker2D" parent="."]
+position = Vector2(865, 560)
+
+[node name="Creature2Position" type="Marker2D" parent="."]
+position = Vector2(1105, 560)
+
+[node name="FightUI" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="FightDisplay" type="Label" parent="FightUI"]
+visible = false
+offset_left = 450.0
+offset_top = 24.0
+offset_right = 625.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(1, 0.86, 0.76, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.06, 0.06, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "Creature 1 HP: 100 / 100"
+horizontal_alignment = 1

@@ -17,6 +17,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 		Push
 	}
 
+	private enum CompetitionMode
+	{
+		None,
+		Race,
+		Fight
+	}
+
 	[Export]
 	public float WanderSpeed { get; set; } = 70.0f;
 
@@ -73,6 +80,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public string CurrentAiState { get; private set; } = "Idle";
 	public float CompetitionSpeed => _stats.GetValue(CreatureStatType.Speed);
+	public float CompetitionPower => _stats.GetValue(CreatureStatType.Power);
+	public bool CanBeginCompetition => _competitionMode == CompetitionMode.None;
 
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
@@ -104,10 +113,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private bool _isSocialInitiator;
 	private bool _isSocialPerforming;
 	private bool _isRunning;
-	private bool _isRacing;
 	private bool _isRaceMoving;
 	private Vector2 _raceFinishPosition;
 	private float _raceMovementSpeed;
+	private CompetitionMode _competitionMode;
+	private float _fightAttackVisualTime;
+	private float _fightHitVisualTime;
+	private Vector2 _fightLungeDirection;
 	private Reaction _reaction;
 	private SocialInteraction _socialInteraction;
 
@@ -132,10 +144,18 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_isRacing)
+		if (_competitionMode == CompetitionMode.Race)
 		{
 			_needs.TickAwake((float)delta);
 			UpdateRaceMovement((float)delta);
+			MoveAndSlide();
+			return;
+		}
+
+		if (_competitionMode == CompetitionMode.Fight)
+		{
+			UpdateFightVisual((float)delta);
+			Velocity = Vector2.Zero;
 			MoveAndSlide();
 			return;
 		}
@@ -195,7 +215,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public bool TryInteract(Node interactor)
 	{
-		if (_isRacing || _reaction != Reaction.None || interactor is not Player player)
+		if (_competitionMode != CompetitionMode.None || _reaction != Reaction.None || interactor is not Player player)
 			return false;
 
 		if (_isSleeping)
@@ -414,7 +434,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private bool CanParticipateInSocial()
 	{
-		return !_isRacing
+		return _competitionMode == CompetitionMode.None
 			&& _reaction == Reaction.None
 			&& !_isSleeping
 			&& !_isInvestigating
@@ -599,13 +619,16 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public void PrepareForRace(Vector2 startPosition, Vector2 finishPosition, float movementSpeed)
 	{
+		if (!CanBeginCompetition)
+			return;
+
 		CancelSocialInteraction();
 		CancelInvestigation();
 		_reaction = Reaction.None;
 		_isSleeping = false;
 		_isWandering = false;
 		_isRunning = false;
-		_isRacing = true;
+		_competitionMode = CompetitionMode.Race;
 		_isRaceMoving = false;
 		_raceFinishPosition = finishPosition;
 		_raceMovementSpeed = movementSpeed;
@@ -618,7 +641,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public void StartRaceMovement()
 	{
-		if (!_isRacing)
+		if (_competitionMode != CompetitionMode.Race)
 			return;
 
 		_isRaceMoving = true;
@@ -627,12 +650,12 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public bool HasReachedRaceFinish()
 	{
-		return _isRacing && GlobalPosition.DistanceTo(_raceFinishPosition) <= 2.5f;
+		return _competitionMode == CompetitionMode.Race && GlobalPosition.DistanceTo(_raceFinishPosition) <= 2.5f;
 	}
 
 	public void PauseRaceAtFinish(bool isWinner)
 	{
-		if (!_isRacing)
+		if (_competitionMode != CompetitionMode.Race)
 			return;
 
 		_isRaceMoving = false;
@@ -642,10 +665,10 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public void EndRace()
 	{
-		if (!_isRacing)
+		if (_competitionMode != CompetitionMode.Race)
 			return;
 
-		_isRacing = false;
+		_competitionMode = CompetitionMode.None;
 		_isRaceMoving = false;
 		Velocity = Vector2.Zero;
 		_neutralMark.Visible = true;
@@ -682,5 +705,95 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_investigateMark.Visible = false;
 		_socialHappyMark.Visible = false;
 		_socialPushMark.Visible = false;
+	}
+
+	public void PrepareForFight(Vector2 startPosition, Vector2 opponentPosition)
+	{
+		if (!CanBeginCompetition)
+			return;
+
+		CancelSocialInteraction();
+		CancelInvestigation();
+		_reaction = Reaction.None;
+		_isSleeping = false;
+		_isWandering = false;
+		_isRunning = false;
+		_competitionMode = CompetitionMode.Fight;
+		GlobalPosition = startPosition;
+		Velocity = Vector2.Zero;
+		_visual.Position = Vector2.Zero;
+		HideTemporaryIndicators();
+		CurrentAiState = "Fighting";
+		GetNode<CreatureVisualController>("Visual").FaceHorizontal(opponentPosition.X - startPosition.X);
+	}
+
+	public void ShowFightAttack(Vector2 opponentPosition)
+	{
+		if (_competitionMode != CompetitionMode.Fight)
+			return;
+
+		_fightLungeDirection = GlobalPosition.DirectionTo(opponentPosition);
+		_fightAttackVisualTime = 0.3f;
+	}
+
+	public void ShowFightHit()
+	{
+		if (_competitionMode != CompetitionMode.Fight)
+			return;
+
+		_fightHitVisualTime = 0.35f;
+		_socialPushMark.Visible = true;
+		_neutralMark.Visible = false;
+	}
+
+	public void PauseFight(bool isWinner)
+	{
+		if (_competitionMode != CompetitionMode.Fight)
+			return;
+
+		_fightAttackVisualTime = 0.0f;
+		_fightHitVisualTime = 0.0f;
+		_visual.Position = Vector2.Zero;
+		_socialPushMark.Visible = false;
+		_neutralMark.Visible = true;
+		CurrentAiState = isWinner ? "Fight Winner" : "Fight Finished";
+	}
+
+	public void EndFight()
+	{
+		if (_competitionMode != CompetitionMode.Fight)
+			return;
+
+		_competitionMode = CompetitionMode.None;
+		_fightAttackVisualTime = 0.0f;
+		_fightHitVisualTime = 0.0f;
+		_visual.Position = Vector2.Zero;
+		_socialPushMark.Visible = false;
+		_neutralMark.Visible = true;
+		BeginIdle();
+	}
+
+	private void UpdateFightVisual(float delta)
+	{
+		if (_fightAttackVisualTime > 0.0f)
+		{
+			_fightAttackVisualTime = Mathf.Max(0.0f, _fightAttackVisualTime - delta);
+			float lunge = Mathf.Sin((_fightAttackVisualTime / 0.3f) * Mathf.Pi);
+			_visual.Position = _fightLungeDirection * lunge * 6.0f;
+		}
+		else
+		{
+			_visual.Position = Vector2.Zero;
+		}
+
+		if (_fightHitVisualTime <= 0.0f)
+			return;
+
+		_fightHitVisualTime = Mathf.Max(0.0f, _fightHitVisualTime - delta);
+		if (_fightHitVisualTime <= 0.0f)
+		{
+			_socialPushMark.Visible = false;
+			_neutralMark.Visible = true;
+		}
 	}
 }

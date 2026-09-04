@@ -112,4 +112,10 @@ public partial class CreatureVisualController : Node2D
 	{
 		return new Vector2(pixelOffset.X / RenderedTextureSize.X, pixelOffset.Y / RenderedTextureSize.Y);
 	}
+
+	public void FaceHorizontal(float horizontalDirection)
+	{
+		if (Mathf.Abs(horizontalDirection) > 0.01f)
+			_sprite.FlipH = horizontalDirection < 0.0f;
+	}
 }

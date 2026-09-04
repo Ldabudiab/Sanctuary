@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Crystal.cs" id="1_crystal"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ruby"]
+radius = 13.0
+
+[node name="Ruby" type="Area2D"]
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("1_crystal")
+StatType = 1
+StatIncrease = 5.0
+
+[node name="Shadow" type="Polygon2D" parent="."]
+position = Vector2(0, 11)
+polygon = PackedVector2Array(-10, 0, 10, 0, 7, 4, -7, 4)
+color = Color(0.16, 0.06, 0.07, 0.45)
+
+[node name="Crystal" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -16, 10, -6, 7, 10, 0, 16, -7, 10, -10, -6)
+color = Color(0.88, 0.16, 0.22, 1)
+
+[node name="Highlight" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-2, -11, 4, -6, 2, 5, -2, 8)
+color = Color(1, 0.62, 0.62, 0.9)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_ruby")

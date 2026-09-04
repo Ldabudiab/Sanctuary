@@ -12,14 +12,18 @@ public partial class Player : CharacterBody2D
 	private Node2D _visual = null!;
 	private Area2D _interactionArea = null!;
 	private CanvasItem _carriedFoodVisual = null!;
-	private CanvasItem _carriedEmeraldVisual = null!;
+	private CanvasItem _carriedCrystalVisual = null!;
+	private Polygon2D _carriedCrystalShape = null!;
+	private Polygon2D _carriedCrystalHighlight = null!;
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
 		_interactionArea = GetNode<Area2D>("InteractionArea");
 		_carriedFoodVisual = GetNode<CanvasItem>("CarriedFoodVisual");
-		_carriedEmeraldVisual = GetNode<CanvasItem>("CarriedEmeraldVisual");
+		_carriedCrystalVisual = GetNode<CanvasItem>("CarriedCrystalVisual");
+		_carriedCrystalShape = GetNode<Polygon2D>("CarriedCrystalVisual/Crystal");
+		_carriedCrystalHighlight = GetNode<Polygon2D>("CarriedCrystalVisual/Highlight");
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -140,6 +144,17 @@ public partial class Player : CharacterBody2D
 	private void UpdateCarriedItemVisual()
 	{
 		_carriedFoodVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Food;
-		_carriedEmeraldVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Crystal;
+		_carriedCrystalVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Crystal;
+
+		if (CarriedItem?.Kind != CarriedItemKind.Crystal)
+			return;
+
+		bool isRuby = CarriedItem.StatType == CreatureStatType.Power;
+		_carriedCrystalShape.Color = isRuby
+			? new Color(0.88f, 0.16f, 0.22f)
+			: new Color(0.16f, 0.78f, 0.38f);
+		_carriedCrystalHighlight.Color = isRuby
+			? new Color(1.0f, 0.62f, 0.62f, 0.9f)
+			: new Color(0.68f, 1.0f, 0.74f, 0.9f);
 	}
 }
