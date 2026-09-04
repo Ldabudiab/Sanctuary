@@ -52,4 +52,18 @@ public partial class CreaturePersonality : Node
 	{
 		Attachment += 1.0f;
 	}
+
+	public void ApplySavedValues(
+		float activity,
+		float attachment,
+		float curiosity,
+		float social,
+		float temperament)
+	{
+		Activity = activity;
+		Attachment = attachment;
+		Curiosity = curiosity;
+		Social = social;
+		Temperament = temperament;
+	}
 }

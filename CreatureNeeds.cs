@@ -61,4 +61,11 @@ public partial class CreatureNeeds : Node
 	{
 		Energy = Mathf.Clamp(Energy + EnergyRestorePerSecond * delta, 0.0f, 100.0f);
 	}
+
+	public void ApplySavedValues(float hunger, float happiness, float energy)
+	{
+		Hunger = Mathf.Clamp(hunger, 0.0f, 100.0f);
+		Happiness = Mathf.Clamp(happiness, 0.0f, 100.0f);
+		Energy = Mathf.Clamp(energy, 0.0f, 100.0f);
+	}
 }

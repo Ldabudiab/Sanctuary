@@ -81,6 +81,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export(PropertyHint.Range, "0,10,1")]
 	public float FeedingEnduranceGain { get; set; } = 1.0f;
 
+	[Export]
+	public string PersistentId { get; set; } = string.Empty;
+
 	public string CurrentAiState { get; private set; } = "Idle";
 	public float CompetitionSpeed => _stats.GetValue(CreatureStatType.Speed);
 	public float CompetitionPower => _stats.GetValue(CreatureStatType.Power);
@@ -876,5 +879,65 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_sleepMark.Visible = false;
 		_neutralMark.Visible = true;
 		CurrentAiState = _competitionMode == CompetitionMode.Race ? "Racing" : "Fighting";
+	}
+
+	public CreatureSaveData CreateSaveData()
+	{
+		return new CreatureSaveData
+		{
+			Stats = new CreatureStatsSaveData
+			{
+				Speed = _stats.Speed,
+				Power = _stats.Power,
+				Endurance = _stats.Endurance,
+				Swimming = _stats.Swimming,
+				Intelligence = _stats.Intelligence
+			},
+			Personality = new CreaturePersonalitySaveData
+			{
+				Activity = _personality.Activity,
+				Attachment = _personality.Attachment,
+				Curiosity = _personality.Curiosity,
+				Social = _personality.Social,
+				Temperament = _personality.Temperament
+			},
+			Needs = new CreatureNeedsSaveData
+			{
+				Hunger = _needs.Hunger,
+				Happiness = _needs.Happiness,
+				Energy = _needs.Energy
+			}
+		};
+	}
+
+	public void ApplySaveData(CreatureSaveData saveData)
+	{
+		if (saveData.Stats != null)
+		{
+			_stats.ApplySavedValues(
+				saveData.Stats.Speed,
+				saveData.Stats.Power,
+				saveData.Stats.Endurance,
+				saveData.Stats.Swimming,
+				saveData.Stats.Intelligence);
+		}
+
+		if (saveData.Personality != null)
+		{
+			_personality.ApplySavedValues(
+				saveData.Personality.Activity,
+				saveData.Personality.Attachment,
+				saveData.Personality.Curiosity,
+				saveData.Personality.Social,
+				saveData.Personality.Temperament);
+		}
+
+		if (saveData.Needs != null)
+		{
+			_needs.ApplySavedValues(
+				saveData.Needs.Hunger,
+				saveData.Needs.Happiness,
+				saveData.Needs.Energy);
+		}
 	}
 }

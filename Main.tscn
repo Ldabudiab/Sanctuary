@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://RaceActivity.tscn" id="10_race"]
 [ext_resource type="PackedScene" path="res://Ruby.tscn" id="11_ruby"]
 [ext_resource type="PackedScene" path="res://FightActivity.tscn" id="12_fight"]
+[ext_resource type="Script" path="res://SaveManager.cs" id="13_save_manager"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -36,6 +37,7 @@ DestinationSpawnPoint = "FromSanctuary"
 
 [node name="Creature1" parent="." unique_id=724159373 instance=ExtResource("3_creature")]
 position = Vector2(780, 300)
+PersistentId = "creature_1"
 
 [node name="Personality" parent="Creature1" index="4"]
 Activity = 80.0
@@ -46,6 +48,7 @@ Temperament = -80.0
 
 [node name="Creature2" parent="." instance=ExtResource("3_creature")]
 position = Vector2(900, 500)
+PersistentId = "creature_2"
 
 [node name="Personality" parent="Creature2" index="4"]
 Activity = -80.0
@@ -91,6 +94,26 @@ Creature2Path = NodePath("../Creature2")
 [node name="FightActivity" parent="." instance=ExtResource("12_fight")]
 Creature1Path = NodePath("../Creature1")
 Creature2Path = NodePath("../Creature2")
+
+[node name="SaveManager" type="Node" parent="."]
+script = ExtResource("13_save_manager")
+FeedbackLabelPath = NodePath("../SaveFeedback/Message")
+
+[node name="SaveFeedback" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="Message" type="Label" parent="SaveFeedback"]
+visible = false
+offset_left = 245.0
+offset_top = 322.0
+offset_right = 395.0
+offset_bottom = 348.0
+theme_override_colors/font_color = Color(0.92, 1, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.08, 0.05, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "Game Saved"
+horizontal_alignment = 1
 
 [node name="DebugUI" type="CanvasLayer" parent="." unique_id=1106291833]
 layer = 10

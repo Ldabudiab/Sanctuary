@@ -57,6 +57,20 @@ public partial class CreatureStats : Node
 		}
 	}
 
+	public void ApplySavedValues(
+		float speed,
+		float power,
+		float endurance,
+		float swimming,
+		float intelligence)
+	{
+		Speed = ClampStat(speed);
+		Power = ClampStat(power);
+		Endurance = ClampStat(endurance);
+		Swimming = ClampStat(swimming);
+		Intelligence = ClampStat(intelligence);
+	}
+
 	private static float ClampStat(float value)
 	{
 		return Mathf.Clamp(value, 0.0f, MaximumStatValue);
