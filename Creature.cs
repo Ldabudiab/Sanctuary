@@ -6,7 +6,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		None,
 		Petting,
-		Eating
+		Eating,
+		StatBoost
 	}
 
 	private enum SocialInteraction
@@ -61,6 +62,15 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float PushDuration { get; set; } = 0.35f;
 
+	[Export(PropertyHint.Range, "0,100,1")]
+	public float RunUnlockSpeed { get; set; } = 20.0f;
+
+	[Export(PropertyHint.Range, "0,1,0.05")]
+	public float RunChance { get; set; } = 0.35f;
+
+	[Export(PropertyHint.Range, "1,4,0.1")]
+	public float RunSpeedMultiplier { get; set; } = 2.0f;
+
 	public string CurrentAiState { get; private set; } = "Idle";
 
 	private readonly RandomNumberGenerator _random = new();
@@ -72,8 +82,10 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private Label _investigateMark = null!;
 	private Label _socialHappyMark = null!;
 	private Label _socialPushMark = null!;
+	private Label _statBoostMark = null!;
 	private CreatureNeeds _needs = null!;
 	private CreaturePersonality _personality = null!;
+	private CreatureStats _stats = null!;
 	private Player _player = null!;
 	private InterestPoint _investigationTarget = null!;
 	private Creature _socialPartner = null!;
@@ -90,6 +102,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private bool _isExamining;
 	private bool _isSocialInitiator;
 	private bool _isSocialPerforming;
+	private bool _isRunning;
 	private Reaction _reaction;
 	private SocialInteraction _socialInteraction;
 
@@ -103,8 +116,10 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_investigateMark = GetNode<Label>("NeutralIndicator/InvestigateMark");
 		_socialHappyMark = GetNode<Label>("NeutralIndicator/SocialHappyMark");
 		_socialPushMark = GetNode<Label>("NeutralIndicator/SocialPushMark");
+		_statBoostMark = GetNode<Label>("NeutralIndicator/StatBoostMark");
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_personality = GetNode<CreaturePersonality>("Personality");
+		_stats = GetNode<CreatureStats>("Stats");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 		_random.Randomize();
 		BeginIdle();
@@ -161,7 +176,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 				BeginWandering();
 		}
 
-		Velocity = _isWandering ? _wanderDirection * WanderSpeed : Vector2.Zero;
+		Velocity = _isWandering ? _wanderDirection * GetMovementSpeed() : Vector2.Zero;
 		MoveAndSlide();
 	}
 
@@ -173,14 +188,22 @@ public partial class Creature : CharacterBody2D, IInteractable
 		if (_isSleeping)
 			WakeUp();
 
-		if (player.IsCarryingFood)
+		if (player.CarriedItem != null)
 		{
-			if (!player.TryConsumeCarriedFood())
+			if (!player.TryTakeCarriedItem(out CarriedItem item))
 				return false;
 
-			_needs.ApplyFeeding();
-			_personality.ApplyFeeding();
-			BeginReaction(Reaction.Eating, EatReactionDuration);
+			if (item.Kind == CarriedItemKind.Food)
+			{
+				_needs.ApplyFeeding();
+				_personality.ApplyFeeding();
+				BeginReaction(Reaction.Eating, EatReactionDuration);
+			}
+			else if (item.Kind == CarriedItemKind.Crystal && item.StatType.HasValue)
+			{
+				_stats.ApplyIncrease(item.StatType.Value, item.StatIncrease);
+				BeginReaction(Reaction.StatBoost, PetReactionDuration);
+			}
 		}
 		else
 		{
@@ -198,12 +221,19 @@ public partial class Creature : CharacterBody2D, IInteractable
 		CancelInvestigation();
 		_reaction = reaction;
 		_isWandering = false;
-		CurrentAiState = reaction == Reaction.Petting ? "Petting" : "Eating";
+		_isRunning = false;
+		CurrentAiState = reaction switch
+		{
+			Reaction.Petting => "Petting",
+			Reaction.Eating => "Eating",
+			_ => "StatBoost"
+		};
 		_reactionTimeRemaining = duration;
 		_reactionElapsed = 0.0f;
 		_neutralMark.Visible = false;
 		_heart.Visible = reaction == Reaction.Petting;
 		_eatingMark.Visible = reaction == Reaction.Eating;
+		_statBoostMark.Visible = reaction == Reaction.StatBoost;
 	}
 
 	private bool ShouldSleep()
@@ -219,10 +249,12 @@ public partial class Creature : CharacterBody2D, IInteractable
 		CancelInvestigation();
 		_isSleeping = true;
 		_isWandering = false;
+		_isRunning = false;
 		CurrentAiState = "Sleep";
 		_neutralMark.Visible = false;
 		_heart.Visible = false;
 		_eatingMark.Visible = false;
+		_statBoostMark.Visible = false;
 		_sleepMark.Visible = true;
 	}
 
@@ -266,7 +298,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_isInvestigating = true;
 		_isExamining = false;
 		_isWandering = false;
-		CurrentAiState = "Investigate";
+		ChooseMovementMode();
+		SetMovementState("Investigate");
 		_neutralMark.Visible = false;
 		_investigateMark.Visible = true;
 		return true;
@@ -285,11 +318,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 			Vector2 targetPosition = _investigationTarget.InvestigationPosition;
 			if (GlobalPosition.DistanceTo(targetPosition) > InvestigationArrivalDistance)
 			{
-				Velocity = GlobalPosition.DirectionTo(targetPosition) * WanderSpeed;
+				Velocity = GlobalPosition.DirectionTo(targetPosition) * GetMovementSpeed();
 				return;
 			}
 
 			_isExamining = true;
+			_isRunning = false;
+			CurrentAiState = "Investigate";
 			_stateTimeRemaining = InvestigationDuration;
 			Velocity = Vector2.Zero;
 		}
@@ -310,6 +345,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		_isInvestigating = false;
 		_isExamining = false;
+		_isRunning = false;
 		_investigationTarget = null;
 		_investigateMark.Visible = false;
 		Velocity = Vector2.Zero;
@@ -358,7 +394,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_isSocialInitiator = true;
 		_isSocialPerforming = false;
 		_isWandering = false;
-		CurrentAiState = interaction == SocialInteraction.Greeting ? "Greeting" : "Pushing";
+		ChooseMovementMode();
+		SetMovementState(interaction == SocialInteraction.Greeting ? "Greeting" : "Pushing");
 		return true;
 	}
 
@@ -380,6 +417,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_isSocialInitiator = false;
 		_isSocialPerforming = false;
 		_isWandering = false;
+		_isRunning = false;
 		Velocity = Vector2.Zero;
 		CurrentAiState = interaction == SocialInteraction.Greeting ? "Greeting" : "BeingPushed";
 		return true;
@@ -403,7 +441,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 			if (GlobalPosition.DistanceTo(_socialPartner.GlobalPosition) > SocialArrivalDistance)
 			{
-				Velocity = GlobalPosition.DirectionTo(_socialPartner.GlobalPosition) * WanderSpeed;
+				Velocity = GlobalPosition.DirectionTo(_socialPartner.GlobalPosition) * GetMovementSpeed();
 				return;
 			}
 
@@ -427,6 +465,10 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private void BeginSocialPerformance()
 	{
 		_isSocialPerforming = true;
+		_isRunning = false;
+		CurrentAiState = _socialInteraction == SocialInteraction.Greeting
+			? "Greeting"
+			: (_isSocialInitiator ? "Pushing" : "BeingPushed");
 		_socialTimeRemaining = SocialReactionDuration;
 		_socialHappyMark.Visible = _socialInteraction == SocialInteraction.Greeting;
 		_socialPushMark.Visible = _socialInteraction == SocialInteraction.Push;
@@ -454,6 +496,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_socialInteraction = SocialInteraction.None;
 		_isSocialInitiator = false;
 		_isSocialPerforming = false;
+		_isRunning = false;
 		_socialHappyMark.Visible = false;
 		_socialPushMark.Visible = false;
 		_neutralMark.Visible = true;
@@ -477,6 +520,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_visual.Position = Vector2.Zero;
 		_heart.Visible = false;
 		_eatingMark.Visible = false;
+		_statBoostMark.Visible = false;
 		_neutralMark.Visible = true;
 		BeginIdle();
 	}
@@ -484,6 +528,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private void BeginIdle()
 	{
 		_isWandering = false;
+		_isRunning = false;
 		CurrentAiState = "Idle";
 		float durationMultiplier = _personality.Activity >= 0.0f
 			? Mathf.Lerp(1.0f, 0.35f, _personality.Activity / 100.0f)
@@ -500,6 +545,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 			return;
 
 		_isWandering = true;
+		ChooseMovementMode();
 		float durationMultiplier = _personality.Activity >= 0.0f
 			? Mathf.Lerp(1.0f, 2.5f, _personality.Activity / 100.0f)
 			: Mathf.Lerp(1.0f, 0.35f, -_personality.Activity / 100.0f);
@@ -512,13 +558,28 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 		if (playerIsNearby && _random.Randf() < approachChance)
 		{
-			CurrentAiState = "ApproachPlayer";
+			SetMovementState("ApproachPlayer");
 			_wanderDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
 		}
 		else
 		{
-			CurrentAiState = "Wander";
+			SetMovementState("Wander");
 			_wanderDirection = Vector2.Right.Rotated(_random.RandfRange(0.0f, Mathf.Tau));
 		}
+	}
+
+	private void ChooseMovementMode()
+	{
+		_isRunning = _stats.Speed >= RunUnlockSpeed && _random.Randf() < RunChance;
+	}
+
+	private float GetMovementSpeed()
+	{
+		return WanderSpeed * (_isRunning ? RunSpeedMultiplier : 1.0f);
+	}
+
+	private void SetMovementState(string state)
+	{
+		CurrentAiState = $"{state} ({(_isRunning ? "Running" : "Walking")})";
 	}
 }

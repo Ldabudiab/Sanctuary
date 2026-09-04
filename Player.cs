@@ -6,17 +6,20 @@ public partial class Player : CharacterBody2D
 	public float MovementSpeed { get; set; } = 200.0f;
 
 	public Vector2 FacingDirection { get; private set; } = Vector2.Down;
-	public bool IsCarryingFood { get; private set; }
+	public CarriedItem CarriedItem { get; private set; }
+	public bool IsCarryingFood => CarriedItem?.Kind == CarriedItemKind.Food;
 
 	private Node2D _visual = null!;
 	private Area2D _interactionArea = null!;
 	private CanvasItem _carriedFoodVisual = null!;
+	private CanvasItem _carriedEmeraldVisual = null!;
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
 		_interactionArea = GetNode<Area2D>("InteractionArea");
 		_carriedFoodVisual = GetNode<CanvasItem>("CarriedFoodVisual");
+		_carriedEmeraldVisual = GetNode<CanvasItem>("CarriedEmeraldVisual");
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -90,12 +93,7 @@ public partial class Player : CharacterBody2D
 
 	public bool TryPickupFood()
 	{
-		if (IsCarryingFood)
-			return false;
-
-		IsCarryingFood = true;
-		_carriedFoodVisual.Visible = true;
-		return true;
+		return TryPickupItem(CarriedItem.CreateFood());
 	}
 
 	public bool TryConsumeCarriedFood()
@@ -103,14 +101,45 @@ public partial class Player : CharacterBody2D
 		if (!IsCarryingFood)
 			return false;
 
-		IsCarryingFood = false;
-		_carriedFoodVisual.Visible = false;
+		TryTakeCarriedItem(out _);
 		return true;
+	}
+
+	public bool TryPickupItem(CarriedItem item)
+	{
+		if (item == null || CarriedItem != null)
+			return false;
+
+		CarriedItem = item;
+		UpdateCarriedItemVisual();
+		return true;
+	}
+
+	public bool TryTakeCarriedItem(out CarriedItem item)
+	{
+		item = CarriedItem;
+		if (item == null)
+			return false;
+
+		CarriedItem = null;
+		UpdateCarriedItemVisual();
+		return true;
+	}
+
+	public void SetCarriedItem(CarriedItem item)
+	{
+		CarriedItem = item;
+		UpdateCarriedItemVisual();
 	}
 
 	public void SetCarryingFood(bool isCarryingFood)
 	{
-		IsCarryingFood = isCarryingFood;
-		_carriedFoodVisual.Visible = isCarryingFood;
+		SetCarriedItem(isCarryingFood ? CarriedItem.CreateFood() : null);
+	}
+
+	private void UpdateCarriedItemVisual()
+	{
+		_carriedFoodVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Food;
+		_carriedEmeraldVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Crystal;
 	}
 }

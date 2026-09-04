@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://InterestPoint.tscn" id="6_interest_point"]
 [ext_resource type="PackedScene" path="res://SanctuaryEnvironment.tscn" id="7_environment"]
 [ext_resource type="PackedScene" path="res://DoorwayTrigger.tscn" id="8_doorway"]
+[ext_resource type="PackedScene" path="res://Emerald.tscn" id="9_emerald"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -53,6 +54,18 @@ Temperament = 80.0
 [node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
 position = Vector2(480, 360)
 
+[node name="Emerald1" parent="." instance=ExtResource("9_emerald")]
+position = Vector2(360, 250)
+
+[node name="Emerald2" parent="." instance=ExtResource("9_emerald")]
+position = Vector2(720, 560)
+
+[node name="Emerald3" parent="." instance=ExtResource("9_emerald")]
+position = Vector2(1080, 310)
+
+[node name="Emerald4" parent="." instance=ExtResource("9_emerald")]
+position = Vector2(570, 230)
+
 [node name="InterestPoint" parent="." instance=ExtResource("6_interest_point")]
 position = Vector2(1010, 430)
 
@@ -62,18 +75,18 @@ layer = 10
 [node name="Background" type="ColorRect" parent="DebugUI" unique_id=2060253970]
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 238.0
-offset_bottom = 350.0
+offset_right = 358.0
+offset_bottom = 126.0
 mouse_filter = 2
 color = Color(0.04, 0.05, 0.06, 0.82)
 
 [node name="Creature1" type="Label" parent="DebugUI" unique_id=1866103667]
 offset_left = 22.0
 offset_top = 20.0
-offset_right = 228.0
-offset_bottom = 174.0
+offset_right = 174.0
+offset_bottom = 118.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 10
 text = "Creature 1
 State: Idle
 Hunger: 100
@@ -86,17 +99,16 @@ Social: 80
 Temperament: -80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 1"
-NeedsPath = NodePath("../../Creature1/Needs")
-PersonalityPath = NodePath("../../Creature1/Personality")
 CreaturePath = NodePath("../../Creature1")
+StatsPath = NodePath("../../Creature1/Stats")
 
 [node name="Creature2" type="Label" parent="DebugUI"]
-offset_left = 22.0
-offset_top = 178.0
-offset_right = 228.0
-offset_bottom = 340.0
+offset_left = 184.0
+offset_top = 20.0
+offset_right = 348.0
+offset_bottom = 118.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 10
 text = "Creature 2
 State: Idle
 Hunger: 100
@@ -109,9 +121,8 @@ Social: 80
 Temperament: 80"
 script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 2"
-NeedsPath = NodePath("../../Creature2/Needs")
-PersonalityPath = NodePath("../../Creature2/Personality")
 CreaturePath = NodePath("../../Creature2")
+StatsPath = NodePath("../../Creature2/Stats")
 
 [editable path="Creature1"]
 [editable path="Creature2"]

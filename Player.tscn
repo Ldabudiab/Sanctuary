@@ -61,6 +61,18 @@ color = Color(0.95, 0.38, 0.12, 1)
 polygon = PackedVector2Array(0, -8, 4, -13, 8, -12, 5, -8)
 color = Color(0.24, 0.62, 0.2, 1)
 
+[node name="CarriedEmeraldVisual" type="Node2D" parent="."]
+visible = false
+position = Vector2(18, -24)
+
+[node name="Crystal" type="Polygon2D" parent="CarriedEmeraldVisual"]
+polygon = PackedVector2Array(0, -11, 7, -4, 5, 7, 0, 11, -5, 7, -7, -4)
+color = Color(0.16, 0.78, 0.38, 1)
+
+[node name="Highlight" type="Polygon2D" parent="CarriedEmeraldVisual"]
+polygon = PackedVector2Array(-1, -7, 3, -4, 1, 4, -2, 5)
+color = Color(0.68, 1, 0.74, 0.9)
+
 [node name="InteractionArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 12

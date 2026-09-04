@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cciih6e2vi586" path="res://CreaturePersonality.cs" id="3_personality"]
 [ext_resource type="PackedScene" path="res://CreatureVisual.tscn" id="4_visual"]
 [ext_resource type="Texture2D" path="res://Assets/Creatures/Base/base_creature_orb.png" id="5_orb"]
+[ext_resource type="Script" path="res://CreatureStats.cs" id="6_stats"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
 radius = 12.0
@@ -89,9 +90,24 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 16
 text = "!"
 
+[node name="StatBoostMark" type="Label" parent="NeutralIndicator"]
+visible = false
+offset_left = -7.0
+offset_top = -15.0
+offset_right = 10.0
+offset_bottom = 10.0
+theme_override_colors/font_color = Color(0.35, 1, 0.48, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.16, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "↑"
+
 [node name="Needs" type="Node" parent="." unique_id=1588014957]
 script = ExtResource("2_needs")
 
 [node name="Personality" type="Node" parent="." unique_id=1124222535]
 script = ExtResource("3_personality")
 Activity = -100.0
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("6_stats")

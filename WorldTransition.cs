@@ -4,7 +4,7 @@ public static class WorldTransition
 {
 	private const ulong TransitionCooldownMilliseconds = 1000;
 	private static string _pendingSpawnPoint = string.Empty;
-	private static bool _playerWasCarryingFood;
+	private static CarriedItem _carriedItem;
 	private static ulong _blockedUntil;
 
 	public static bool TryTravel(Node context, string scenePath, string spawnPointName)
@@ -14,7 +14,7 @@ public static class WorldTransition
 			return false;
 
 		Player player = context.GetTree().GetFirstNodeInGroup("player") as Player;
-		_playerWasCarryingFood = player != null && player.IsCarryingFood;
+		_carriedItem = player?.CarriedItem;
 		_pendingSpawnPoint = spawnPointName;
 		_blockedUntil = now + TransitionCooldownMilliseconds;
 
@@ -52,7 +52,7 @@ public static class WorldTransition
 
 		player.GlobalPosition = spawnPoint.GlobalPosition;
 		player.Velocity = Vector2.Zero;
-		player.SetCarryingFood(_playerWasCarryingFood);
+		player.SetCarriedItem(_carriedItem);
 		_pendingSpawnPoint = string.Empty;
 		_blockedUntil = Time.GetTicksMsec() + TransitionCooldownMilliseconds;
 	}
