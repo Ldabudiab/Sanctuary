@@ -72,6 +72,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	public float RunSpeedMultiplier { get; set; } = 2.0f;
 
 	public string CurrentAiState { get; private set; } = "Idle";
+	public float CompetitionSpeed => _stats.GetValue(CreatureStatType.Speed);
 
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
@@ -103,6 +104,10 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private bool _isSocialInitiator;
 	private bool _isSocialPerforming;
 	private bool _isRunning;
+	private bool _isRacing;
+	private bool _isRaceMoving;
+	private Vector2 _raceFinishPosition;
+	private float _raceMovementSpeed;
 	private Reaction _reaction;
 	private SocialInteraction _socialInteraction;
 
@@ -127,6 +132,14 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (_isRacing)
+		{
+			_needs.TickAwake((float)delta);
+			UpdateRaceMovement((float)delta);
+			MoveAndSlide();
+			return;
+		}
+
 		if (_reaction != Reaction.None)
 		{
 			_needs.TickAwake((float)delta);
@@ -182,7 +195,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public bool TryInteract(Node interactor)
 	{
-		if (_reaction != Reaction.None || interactor is not Player player)
+		if (_isRacing || _reaction != Reaction.None || interactor is not Player player)
 			return false;
 
 		if (_isSleeping)
@@ -401,7 +414,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private bool CanParticipateInSocial()
 	{
-		return _reaction == Reaction.None
+		return !_isRacing
+			&& _reaction == Reaction.None
 			&& !_isSleeping
 			&& !_isInvestigating
 			&& _socialInteraction == SocialInteraction.None;
@@ -581,5 +595,92 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private void SetMovementState(string state)
 	{
 		CurrentAiState = $"{state} ({(_isRunning ? "Running" : "Walking")})";
+	}
+
+	public void PrepareForRace(Vector2 startPosition, Vector2 finishPosition, float movementSpeed)
+	{
+		CancelSocialInteraction();
+		CancelInvestigation();
+		_reaction = Reaction.None;
+		_isSleeping = false;
+		_isWandering = false;
+		_isRunning = false;
+		_isRacing = true;
+		_isRaceMoving = false;
+		_raceFinishPosition = finishPosition;
+		_raceMovementSpeed = movementSpeed;
+		GlobalPosition = startPosition;
+		Velocity = Vector2.Zero;
+		_visual.Position = Vector2.Zero;
+		HideTemporaryIndicators();
+		CurrentAiState = "Race Countdown";
+	}
+
+	public void StartRaceMovement()
+	{
+		if (!_isRacing)
+			return;
+
+		_isRaceMoving = true;
+		CurrentAiState = "Racing";
+	}
+
+	public bool HasReachedRaceFinish()
+	{
+		return _isRacing && GlobalPosition.DistanceTo(_raceFinishPosition) <= 2.5f;
+	}
+
+	public void PauseRaceAtFinish(bool isWinner)
+	{
+		if (!_isRacing)
+			return;
+
+		_isRaceMoving = false;
+		Velocity = Vector2.Zero;
+		CurrentAiState = isWinner ? "Race Winner" : "Race Finished";
+	}
+
+	public void EndRace()
+	{
+		if (!_isRacing)
+			return;
+
+		_isRacing = false;
+		_isRaceMoving = false;
+		Velocity = Vector2.Zero;
+		_neutralMark.Visible = true;
+		BeginIdle();
+	}
+
+	private void UpdateRaceMovement(float delta)
+	{
+		if (!_isRaceMoving)
+		{
+			Velocity = Vector2.Zero;
+			return;
+		}
+
+		float distanceToFinish = GlobalPosition.DistanceTo(_raceFinishPosition);
+		if (distanceToFinish <= 2.5f)
+		{
+			GlobalPosition = _raceFinishPosition;
+			Velocity = Vector2.Zero;
+			return;
+		}
+
+		float frameLimitedSpeed = Mathf.Min(_raceMovementSpeed, distanceToFinish / Mathf.Max(delta, 0.0001f));
+		Velocity = GlobalPosition.DirectionTo(_raceFinishPosition) * frameLimitedSpeed;
+	}
+
+	private void HideTemporaryIndicators()
+	{
+		_neutralMark.Visible = true;
+		_heart.Visible = false;
+		_eatingMark.Visible = false;
+		_statBoostMark.Visible = false;
+		_sleepMark.Visible = false;
+		_investigateMark.Visible = false;
+		_socialHappyMark.Visible = false;
+		_socialPushMark.Visible = false;
 	}
 }

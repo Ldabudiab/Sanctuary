@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://SanctuaryEnvironment.tscn" id="7_environment"]
 [ext_resource type="PackedScene" path="res://DoorwayTrigger.tscn" id="8_doorway"]
 [ext_resource type="PackedScene" path="res://Emerald.tscn" id="9_emerald"]
+[ext_resource type="PackedScene" path="res://RaceActivity.tscn" id="10_race"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -68,6 +69,10 @@ position = Vector2(570, 230)
 
 [node name="InterestPoint" parent="." instance=ExtResource("6_interest_point")]
 position = Vector2(1010, 430)
+
+[node name="RaceActivity" parent="." instance=ExtResource("10_race")]
+Creature1Path = NodePath("../Creature1")
+Creature2Path = NodePath("../Creature2")
 
 [node name="DebugUI" type="CanvasLayer" parent="." unique_id=1106291833]
 layer = 10

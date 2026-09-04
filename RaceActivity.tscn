@@ -1,0 +1,87 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://RaceActivity.cs" id="1_race"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_start"]
+radius = 24.0
+
+[node name="RaceActivity" type="Area2D"]
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("1_race")
+
+[node name="TrackBackground" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(205, 500, 690, 500, 690, 625, 205, 625)
+color = Color(0.45, 0.55, 0.31, 0.48)
+
+[node name="LaneDivider" type="Line2D" parent="."]
+points = PackedVector2Array(220, 562, 675, 562)
+width = 2.0
+default_color = Color(0.86, 0.86, 0.68, 0.7)
+
+[node name="StartingLine" type="Line2D" parent="."]
+points = PackedVector2Array(235, 510, 235, 615)
+width = 6.0
+default_color = Color(0.95, 0.88, 0.57, 1)
+
+[node name="FinishLine" type="Line2D" parent="."]
+points = PackedVector2Array(655, 510, 655, 615)
+width = 7.0
+default_color = Color(0.95, 0.95, 0.9, 1)
+
+[node name="FinishStripe1" type="Line2D" parent="."]
+points = PackedVector2Array(649, 510, 661, 522, 649, 534, 661, 546, 649, 558, 661, 570, 649, 582, 661, 594, 649, 606, 658, 615)
+width = 3.0
+default_color = Color(0.18, 0.22, 0.2, 1)
+
+[node name="StartPost" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(142, 544, 158, 544, 164, 562, 158, 580, 142, 580, 136, 562)
+color = Color(0.88, 0.68, 0.2, 1)
+
+[node name="StartPostGem" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(150, 532, 158, 540, 150, 548, 142, 540)
+color = Color(0.45, 0.92, 0.62, 1)
+
+[node name="Prompt" type="Label" parent="."]
+offset_left = 113.0
+offset_top = 585.0
+offset_right = 188.0
+offset_bottom = 608.0
+theme_override_colors/font_color = Color(1, 0.94, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.14, 0.1, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "E: Start Race"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(150, 562)
+shape = SubResource("CircleShape2D_start")
+
+[node name="Lane1Start" type="Marker2D" parent="."]
+position = Vector2(250, 535)
+
+[node name="Lane1Finish" type="Marker2D" parent="."]
+position = Vector2(650, 535)
+
+[node name="Lane2Start" type="Marker2D" parent="."]
+position = Vector2(250, 590)
+
+[node name="Lane2Finish" type="Marker2D" parent="."]
+position = Vector2(650, 590)
+
+[node name="RaceUI" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="Message" type="Label" parent="RaceUI"]
+visible = false
+offset_left = 440.0
+offset_top = 24.0
+offset_right = 630.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(1, 0.94, 0.66, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.08, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "3"
+horizontal_alignment = 1

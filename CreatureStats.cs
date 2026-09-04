@@ -19,6 +19,19 @@ public partial class CreatureStats : Node
 	public float Swimming { get; private set; }
 	public float Intelligence { get; private set; }
 
+	public float GetValue(CreatureStatType stat)
+	{
+		return stat switch
+		{
+			CreatureStatType.Speed => Speed,
+			CreatureStatType.Power => Power,
+			CreatureStatType.Endurance => Endurance,
+			CreatureStatType.Swimming => Swimming,
+			CreatureStatType.Intelligence => Intelligence,
+			_ => 0.0f
+		};
+	}
+
 	public void ApplyIncrease(CreatureStatType stat, float amount)
 	{
 		if (amount <= 0.0f)
