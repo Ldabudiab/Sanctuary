@@ -78,10 +78,19 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export(PropertyHint.Range, "1,4,0.1")]
 	public float RunSpeedMultiplier { get; set; } = 2.0f;
 
+	[Export(PropertyHint.Range, "0,10,1")]
+	public float FeedingEnduranceGain { get; set; } = 1.0f;
+
 	public string CurrentAiState { get; private set; } = "Idle";
 	public float CompetitionSpeed => _stats.GetValue(CreatureStatType.Speed);
 	public float CompetitionPower => _stats.GetValue(CreatureStatType.Power);
-	public bool CanBeginCompetition => _competitionMode == CompetitionMode.None;
+	public bool CanBeginCompetition => _competitionMode == CompetitionMode.None && !_isSleeping;
+	public bool NeedsCompetitionRest => _isSleeping;
+	public bool IsCompetitionControlled => _competitionMode != CompetitionMode.None;
+	public bool IsCompetitionResting => _isCompetitionResting;
+	public float CurrentStamina => _stamina.Current;
+	public float MaximumStamina => _stamina.Maximum;
+	public bool IsStaminaExhausted => _stamina.IsExhausted;
 
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
@@ -96,6 +105,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private CreatureNeeds _needs = null!;
 	private CreaturePersonality _personality = null!;
 	private CreatureStats _stats = null!;
+	private CreatureStamina _stamina = null!;
 	private Player _player = null!;
 	private InterestPoint _investigationTarget = null!;
 	private Creature _socialPartner = null!;
@@ -113,9 +123,11 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private bool _isSocialInitiator;
 	private bool _isSocialPerforming;
 	private bool _isRunning;
+	private bool _isCompetitionResting;
 	private bool _isRaceMoving;
 	private Vector2 _raceFinishPosition;
 	private float _raceMovementSpeed;
+	private float _raceStaminaDrainPerSecond;
 	private CompetitionMode _competitionMode;
 	private float _fightAttackVisualTime;
 	private float _fightHitVisualTime;
@@ -137,6 +149,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_personality = GetNode<CreaturePersonality>("Personality");
 		_stats = GetNode<CreatureStats>("Stats");
+		_stamina = GetNode<CreatureStamina>("Stamina");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 		_random.Randomize();
 		BeginIdle();
@@ -146,7 +159,6 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		if (_competitionMode == CompetitionMode.Race)
 		{
-			_needs.TickAwake((float)delta);
 			UpdateRaceMovement((float)delta);
 			MoveAndSlide();
 			return;
@@ -154,6 +166,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 		if (_competitionMode == CompetitionMode.Fight)
 		{
+			if (_isCompetitionResting)
+				UpdateCompetitionRest((float)delta);
 			UpdateFightVisual((float)delta);
 			Velocity = Vector2.Zero;
 			MoveAndSlide();
@@ -219,7 +233,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 			return false;
 
 		if (_isSleeping)
+		{
 			WakeUp();
+		}
 
 		if (player.CarriedItem != null)
 		{
@@ -230,6 +246,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 			{
 				_needs.ApplyFeeding();
 				_personality.ApplyFeeding();
+				_stats.ApplyIncrease(CreatureStatType.Endurance, FeedingEnduranceGain);
 				BeginReaction(Reaction.Eating, EatReactionDuration);
 			}
 			else if (item.Kind == CarriedItemKind.Crystal && item.StatType.HasValue)
@@ -617,7 +634,11 @@ public partial class Creature : CharacterBody2D, IInteractable
 		CurrentAiState = $"{state} ({(_isRunning ? "Running" : "Walking")})";
 	}
 
-	public void PrepareForRace(Vector2 startPosition, Vector2 finishPosition, float movementSpeed)
+	public void PrepareForRace(
+		Vector2 startPosition,
+		Vector2 finishPosition,
+		float movementSpeed,
+		float staminaDrainPerSecond)
 	{
 		if (!CanBeginCompetition)
 			return;
@@ -632,10 +653,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_isRaceMoving = false;
 		_raceFinishPosition = finishPosition;
 		_raceMovementSpeed = movementSpeed;
+		_raceStaminaDrainPerSecond = staminaDrainPerSecond;
+		_isCompetitionResting = false;
 		GlobalPosition = startPosition;
 		Velocity = Vector2.Zero;
 		_visual.Position = Vector2.Zero;
 		HideTemporaryIndicators();
+		_stamina.BeginCompetition();
 		CurrentAiState = "Race Countdown";
 	}
 
@@ -670,7 +694,10 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 		_competitionMode = CompetitionMode.None;
 		_isRaceMoving = false;
+		_isCompetitionResting = false;
 		Velocity = Vector2.Zero;
+		_stamina.EndCompetition();
+		_sleepMark.Visible = false;
 		_neutralMark.Visible = true;
 		BeginIdle();
 	}
@@ -679,6 +706,21 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		if (!_isRaceMoving)
 		{
+			Velocity = Vector2.Zero;
+			return;
+		}
+
+		if (_isCompetitionResting)
+		{
+			UpdateCompetitionRest(delta);
+			Velocity = Vector2.Zero;
+			return;
+		}
+
+		_stamina.Spend(_raceStaminaDrainPerSecond * delta);
+		if (_stamina.IsExhausted)
+		{
+			BeginCompetitionRest();
 			Velocity = Vector2.Zero;
 			return;
 		}
@@ -719,10 +761,12 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_isWandering = false;
 		_isRunning = false;
 		_competitionMode = CompetitionMode.Fight;
+		_isCompetitionResting = false;
 		GlobalPosition = startPosition;
 		Velocity = Vector2.Zero;
 		_visual.Position = Vector2.Zero;
 		HideTemporaryIndicators();
+		_stamina.BeginCompetition();
 		CurrentAiState = "Fighting";
 		GetNode<CreatureVisualController>("Visual").FaceHorizontal(opponentPosition.X - startPosition.X);
 	}
@@ -765,10 +809,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 			return;
 
 		_competitionMode = CompetitionMode.None;
+		_isCompetitionResting = false;
 		_fightAttackVisualTime = 0.0f;
 		_fightHitVisualTime = 0.0f;
 		_visual.Position = Vector2.Zero;
 		_socialPushMark.Visible = false;
+		_stamina.EndCompetition();
+		_sleepMark.Visible = false;
 		_neutralMark.Visible = true;
 		BeginIdle();
 	}
@@ -793,7 +840,39 @@ public partial class Creature : CharacterBody2D, IInteractable
 		if (_fightHitVisualTime <= 0.0f)
 		{
 			_socialPushMark.Visible = false;
-			_neutralMark.Visible = true;
+			_neutralMark.Visible = !_isCompetitionResting;
 		}
+	}
+
+	public void SpendCompetitionStamina(float amount)
+	{
+		if (_competitionMode == CompetitionMode.None)
+			return;
+
+		_stamina.Spend(amount);
+		if (_stamina.IsExhausted)
+			BeginCompetitionRest();
+	}
+
+	private void BeginCompetitionRest()
+	{
+		_isCompetitionResting = true;
+		Velocity = Vector2.Zero;
+		_visual.Position = Vector2.Zero;
+		_neutralMark.Visible = false;
+		_sleepMark.Visible = true;
+		CurrentAiState = _competitionMode == CompetitionMode.Race ? "Race Nap" : "Fight Nap";
+	}
+
+	private void UpdateCompetitionRest(float delta)
+	{
+		_stamina.RestoreDuringCompetitionRest(delta);
+		if (!_stamina.IsFull)
+			return;
+
+		_isCompetitionResting = false;
+		_sleepMark.Visible = false;
+		_neutralMark.Visible = true;
+		CurrentAiState = _competitionMode == CompetitionMode.Race ? "Racing" : "Fighting";
 	}
 }

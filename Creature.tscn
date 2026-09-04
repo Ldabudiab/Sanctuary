@@ -6,9 +6,21 @@
 [ext_resource type="PackedScene" path="res://CreatureVisual.tscn" id="4_visual"]
 [ext_resource type="Texture2D" path="res://Assets/Creatures/Base/base_creature_orb.png" id="5_orb"]
 [ext_resource type="Script" path="res://CreatureStats.cs" id="6_stats"]
+[ext_resource type="Script" path="res://CreatureStamina.cs" id="7_stamina"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
 radius = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_background"]
+bg_color = Color(0.08, 0.1, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.9, 0.82, 0.9)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.3, 0.78, 0.42, 1)
 
 [node name="Creature" type="CharacterBody2D" unique_id=1480241217 groups=["creatures"]]
 collision_layer = 4
@@ -111,3 +123,33 @@ Activity = -100.0
 
 [node name="Stats" type="Node" parent="."]
 script = ExtResource("6_stats")
+
+[node name="Stamina" type="Node" parent="."]
+script = ExtResource("7_stamina")
+
+[node name="StaminaDisplay" type="Node2D" parent="."]
+visible = false
+position = Vector2(0, -46)
+
+[node name="Bar" type="ProgressBar" parent="StaminaDisplay"]
+offset_left = -25.0
+offset_top = -3.0
+offset_right = 25.0
+offset_bottom = 4.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_stamina_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
+value = 100.0
+show_percentage = false
+
+[node name="Value" type="Label" parent="StaminaDisplay"]
+offset_left = -28.0
+offset_top = 4.0
+offset_right = 28.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(0.92, 1, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.07, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 8
+text = "100 / 100"
+horizontal_alignment = 1

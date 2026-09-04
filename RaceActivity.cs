@@ -31,6 +31,9 @@ public partial class RaceActivity : Area2D, IInteractable
 	[Export]
 	public float ResultDisplayDuration { get; set; } = 2.5f;
 
+	[Export]
+	public float StaminaDrainPerSecond { get; set; } = 20.0f;
+
 	private readonly RandomNumberGenerator _random = new();
 	private Creature _creature1 = null!;
 	private Creature _creature2 = null!;
@@ -44,6 +47,7 @@ public partial class RaceActivity : Area2D, IInteractable
 	private float _creature1RaceSpeed;
 	private float _creature2RaceSpeed;
 	private int _countdownNumber;
+	private float _temporaryMessageTime;
 
 	public override void _Ready()
 	{
@@ -61,6 +65,13 @@ public partial class RaceActivity : Area2D, IInteractable
 	{
 		float frameDelta = (float)delta;
 
+		if (_state == RaceState.Ready && _temporaryMessageTime > 0.0f)
+		{
+			_temporaryMessageTime -= frameDelta;
+			if (_temporaryMessageTime <= 0.0f)
+				_message.Visible = false;
+		}
+
 		switch (_state)
 		{
 			case RaceState.Countdown:
@@ -77,11 +88,14 @@ public partial class RaceActivity : Area2D, IInteractable
 
 	public bool TryInteract(Node interactor)
 	{
-		if (_state != RaceState.Ready
-			|| interactor is not Player
-			|| !_creature1.CanBeginCompetition
-			|| !_creature2.CanBeginCompetition)
+		if (_state != RaceState.Ready || interactor is not Player)
 			return false;
+
+		if (!_creature1.CanBeginCompetition || !_creature2.CanBeginCompetition)
+		{
+			ShowUnavailableMessage();
+			return true;
+		}
 
 		BeginRace();
 		return true;
@@ -92,8 +106,16 @@ public partial class RaceActivity : Area2D, IInteractable
 		_creature1RaceSpeed = CalculateRaceSpeed(_creature1.CompetitionSpeed);
 		_creature2RaceSpeed = CalculateRaceSpeed(_creature2.CompetitionSpeed);
 
-		_creature1.PrepareForRace(_lane1Start.GlobalPosition, _lane1Finish.GlobalPosition, _creature1RaceSpeed);
-		_creature2.PrepareForRace(_lane2Start.GlobalPosition, _lane2Finish.GlobalPosition, _creature2RaceSpeed);
+		_creature1.PrepareForRace(
+			_lane1Start.GlobalPosition,
+			_lane1Finish.GlobalPosition,
+			_creature1RaceSpeed,
+			StaminaDrainPerSecond);
+		_creature2.PrepareForRace(
+			_lane2Start.GlobalPosition,
+			_lane2Finish.GlobalPosition,
+			_creature2RaceSpeed,
+			StaminaDrainPerSecond);
 
 		_state = RaceState.Countdown;
 		_countdownNumber = 3;
@@ -193,5 +215,13 @@ public partial class RaceActivity : Area2D, IInteractable
 	private string RaceSpeedText(string heading)
 	{
 		return $"{heading}\nCreature 1: {_creature1RaceSpeed:0.0}\nCreature 2: {_creature2RaceSpeed:0.0}";
+	}
+
+	private void ShowUnavailableMessage()
+	{
+		bool needsRest = _creature1.NeedsCompetitionRest || _creature2.NeedsCompetitionRest;
+		_message.Visible = true;
+		_message.Text = needsRest ? "A creature needs to rest first." : "The creatures are busy.";
+		_temporaryMessageTime = 2.0f;
 	}
 }
