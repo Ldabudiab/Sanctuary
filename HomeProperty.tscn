@@ -1,0 +1,87 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://WorldArea.cs" id="1_world"]
+[ext_resource type="PackedScene" path="res://Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://DoorwayTrigger.tscn" id="3_doorway"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_boundary"]
+size = Vector2(1280, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_boundary"]
+size = Vector2(48, 720)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_house"]
+size = Vector2(280, 170)
+
+[node name="HomeProperty" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="Grass" type="Polygon2D" parent="."]
+z_index = -10
+polygon = PackedVector2Array(0, 0, 1280, 0, 1280, 720, 0, 720)
+color = Color(0.3, 0.5, 0.27, 1)
+
+[node name="PropertyPath" type="Polygon2D" parent="."]
+z_index = -9
+polygon = PackedVector2Array(575, 0, 705, 0, 720, 260, 840, 390, 800, 470, 650, 330, 560, 470, 500, 390, 575, 250)
+color = Color(0.55, 0.43, 0.29, 1)
+
+[node name="HouseExterior" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(120, 120, 400, 120, 400, 290, 120, 290)
+color = Color(0.58, 0.38, 0.25, 1)
+
+[node name="HouseRoof" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(95, 135, 260, 55, 425, 135)
+color = Color(0.34, 0.2, 0.2, 1)
+
+[node name="CaveEntranceVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(545, 0, 735, 0, 710, 68, 570, 68)
+color = Color(0.12, 0.11, 0.15, 1)
+
+[node name="Fence" type="Line2D" parent="."]
+points = PackedVector2Array(45, 45, 1235, 45, 1235, 675, 45, 675, 45, 45)
+width = 10.0
+default_color = Color(0.48, 0.34, 0.22, 1)
+
+[node name="WorldCollision" type="Node2D" parent="."]
+
+[node name="NorthBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(640, -24)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/NorthBoundary"]
+shape = SubResource("RectangleShape2D_horizontal_boundary")
+
+[node name="SouthBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(640, 744)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/SouthBoundary"]
+shape = SubResource("RectangleShape2D_horizontal_boundary")
+
+[node name="WestBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(-24, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/WestBoundary"]
+shape = SubResource("RectangleShape2D_vertical_boundary")
+
+[node name="EastBoundary" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(1304, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/EastBoundary"]
+shape = SubResource("RectangleShape2D_vertical_boundary")
+
+[node name="House" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(260, 205)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/House"]
+shape = SubResource("RectangleShape2D_house")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(640, 120)
+
+[node name="FromCave" type="Marker2D" parent="." groups=["spawn_points"]]
+position = Vector2(640, 120)
+
+[node name="ToCave" parent="." instance=ExtResource("3_doorway")]
+position = Vector2(640, 30)
+DestinationScenePath = "res://Cave.tscn"
+DestinationSpawnPoint = "FromProperty"

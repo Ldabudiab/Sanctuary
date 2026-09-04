@@ -107,4 +107,10 @@ public partial class Player : CharacterBody2D
 		_carriedFoodVisual.Visible = false;
 		return true;
 	}
+
+	public void SetCarryingFood(bool isCarryingFood)
+	{
+		IsCarryingFood = isCarryingFood;
+		_carriedFoodVisual.Visible = isCarryingFood;
+	}
 }

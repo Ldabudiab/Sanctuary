@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://Food.tscn" id="5_food"]
 [ext_resource type="PackedScene" path="res://InterestPoint.tscn" id="6_interest_point"]
 [ext_resource type="PackedScene" path="res://SanctuaryEnvironment.tscn" id="7_environment"]
+[ext_resource type="PackedScene" path="res://DoorwayTrigger.tscn" id="8_doorway"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -15,6 +16,19 @@ script = ExtResource("1_glv2v")
 
 [node name="Player" parent="." unique_id=822421653 instance=ExtResource("2_player")]
 position = Vector2(640, 360)
+
+[node name="FromCave" type="Marker2D" parent="." groups=["spawn_points"]]
+position = Vector2(640, 130)
+
+[node name="CaveExitHint" type="Line2D" parent="."]
+points = PackedVector2Array(590, 88, 640, 72, 690, 88)
+width = 3.0
+default_color = Color(0.48, 0.76, 0.68, 0.85)
+
+[node name="ToCave" parent="." instance=ExtResource("8_doorway")]
+position = Vector2(640, 78)
+DestinationScenePath = "res://Cave.tscn"
+DestinationSpawnPoint = "FromSanctuary"
 
 [node name="Creature1" parent="." unique_id=724159373 instance=ExtResource("3_creature")]
 position = Vector2(780, 300)

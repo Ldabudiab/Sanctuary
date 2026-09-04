@@ -1,0 +1,100 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://WorldArea.cs" id="1_world"]
+[ext_resource type="PackedScene" path="res://Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://DoorwayTrigger.tscn" id="3_doorway"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
+size = Vector2(1280, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_wall"]
+size = Vector2(48, 720)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rock"]
+size = Vector2(180, 100)
+
+[node name="Cave" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="CaveFloor" type="Polygon2D" parent="."]
+z_index = -10
+polygon = PackedVector2Array(0, 0, 1280, 0, 1280, 720, 0, 720)
+color = Color(0.13, 0.12, 0.17, 1)
+
+[node name="WalkablePath" type="Polygon2D" parent="."]
+z_index = -9
+polygon = PackedVector2Array(520, 0, 760, 0, 820, 180, 735, 360, 800, 540, 760, 720, 500, 720, 465, 540, 545, 360, 470, 180)
+color = Color(0.27, 0.25, 0.3, 1)
+
+[node name="CrystalLeft" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(245, 270, 270, 205, 290, 275, 275, 315)
+color = Color(0.36, 0.65, 0.72, 1)
+
+[node name="CrystalRight" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(1000, 430, 1025, 360, 1050, 435, 1030, 475)
+color = Color(0.48, 0.42, 0.7, 1)
+
+[node name="NorthExitVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(560, 0, 720, 0, 700, 58, 580, 58)
+color = Color(0.38, 0.32, 0.27, 1)
+
+[node name="SouthExitVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(570, 662, 710, 662, 735, 720, 545, 720)
+color = Color(0.2, 0.28, 0.19, 1)
+
+[node name="WorldCollision" type="Node2D" parent="."]
+
+[node name="NorthWall" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(640, -24)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/NorthWall"]
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="SouthWall" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(640, 744)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/SouthWall"]
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="WestWall" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(-24, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/WestWall"]
+shape = SubResource("RectangleShape2D_vertical_wall")
+
+[node name="EastWall" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(1304, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/EastWall"]
+shape = SubResource("RectangleShape2D_vertical_wall")
+
+[node name="RockObstacleLeft" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(280, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/RockObstacleLeft"]
+shape = SubResource("RectangleShape2D_rock")
+
+[node name="RockObstacleRight" type="StaticBody2D" parent="WorldCollision"]
+position = Vector2(1000, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldCollision/RockObstacleRight"]
+shape = SubResource("RectangleShape2D_rock")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(640, 600)
+
+[node name="FromSanctuary" type="Marker2D" parent="." groups=["spawn_points"]]
+position = Vector2(640, 600)
+
+[node name="FromProperty" type="Marker2D" parent="." groups=["spawn_points"]]
+position = Vector2(640, 120)
+
+[node name="ToSanctuary" parent="." instance=ExtResource("3_doorway")]
+position = Vector2(640, 690)
+DestinationScenePath = "res://Main.tscn"
+DestinationSpawnPoint = "FromCave"
+
+[node name="ToProperty" parent="." instance=ExtResource("3_doorway")]
+position = Vector2(640, 30)
+DestinationScenePath = "res://HomeProperty.tscn"
+DestinationSpawnPoint = "FromCave"
