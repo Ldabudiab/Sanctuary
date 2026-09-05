@@ -3,11 +3,19 @@ using System.Collections.Generic;
 public sealed class SanctuarySaveData
 {
 	public int Version { get; set; } = 1;
+	public WorldTimeSaveData WorldTime { get; set; } = new();
 	public Dictionary<string, CreatureSaveData> Creatures { get; set; } = new();
+}
+
+public sealed class WorldTimeSaveData
+{
+	public int CurrentDay { get; set; } = 1;
+	public double TimeOfDay { get; set; }
 }
 
 public sealed class CreatureSaveData
 {
+	public int Age { get; set; }
 	public CreatureStatsSaveData Stats { get; set; } = new();
 	public CreaturePersonalitySaveData Personality { get; set; } = new();
 	public CreatureNeedsSaveData Needs { get; set; } = new();

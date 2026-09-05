@@ -11,6 +11,9 @@ public partial class SaveManager : Node
 	[Export]
 	public NodePath FeedbackLabelPath { get; set; } = null!;
 
+	[Export]
+	public NodePath WorldTimePath { get; set; } = null!;
+
 	private static readonly JsonSerializerOptions JsonOptions = new()
 	{
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -19,12 +22,16 @@ public partial class SaveManager : Node
 	};
 
 	private Label _feedbackLabel = null!;
+	private WorldTime _worldTime = null!;
 	private readonly List<Creature> _persistentCreatures = new();
 	private float _feedbackTimeRemaining;
+	private bool _manualLoadPending;
+	private bool _isLoading;
 
 	public override void _Ready()
 	{
 		_feedbackLabel = GetNode<Label>(FeedbackLabelPath);
+		_worldTime = GetNode<WorldTime>(WorldTimePath);
 		foreach (Node node in GetTree().GetNodesInGroup("creatures"))
 		{
 			if (node is Creature creature)
@@ -52,10 +59,33 @@ public partial class SaveManager : Node
 			SaveGame();
 			GetViewport().SetInputAsHandled();
 		}
-		else if (keyEvent.Keycode == Key.F9 || keyEvent.PhysicalKeycode == Key.F9)
+		else if (keyEvent.Keycode == Key.F4 || keyEvent.PhysicalKeycode == Key.F4)
+		{
+			RequestManualLoad();
+			GetViewport().SetInputAsHandled();
+		}
+	}
+
+	private void RequestManualLoad()
+	{
+		if (_manualLoadPending || _isLoading)
+			return;
+
+		_manualLoadPending = true;
+		GD.Print("F4 load requested");
+		CallDeferred(MethodName.PerformManualLoad);
+	}
+
+	private void PerformManualLoad()
+	{
+		try
 		{
 			LoadGame();
-			GetViewport().SetInputAsHandled();
+		}
+		finally
+		{
+			_manualLoadPending = false;
+			GD.Print("Manual load finished");
 		}
 	}
 
@@ -87,6 +117,12 @@ public partial class SaveManager : Node
 
 	public bool LoadGame(bool showFeedback = true)
 	{
+		if (_isLoading)
+		{
+			GD.PushWarning("A load is already in progress; duplicate request ignored.");
+			return false;
+		}
+
 		if (!FileAccess.FileExists(SavePath))
 		{
 			GD.Print("No Save Found");
@@ -97,15 +133,23 @@ public partial class SaveManager : Node
 
 		try
 		{
-			using FileAccess file = FileAccess.Open(SavePath, FileAccess.ModeFlags.Read);
-			if (file == null)
+			_isLoading = true;
+			GD.Print("Save file read started");
+			string json;
+			using (FileAccess file = FileAccess.Open(SavePath, FileAccess.ModeFlags.Read))
 			{
-				ReportFailure($"Unable to open save file: {FileAccess.GetOpenError()}", showFeedback);
-				return false;
+				if (file == null)
+				{
+					ReportFailure($"Unable to open save file: {FileAccess.GetOpenError()}", showFeedback);
+					return false;
+				}
+
+				json = file.GetAsText();
 			}
+			GD.Print("Save file read completed");
 
 			SanctuarySaveData saveData =
-				JsonSerializer.Deserialize<SanctuarySaveData>(file.GetAsText(), JsonOptions);
+				JsonSerializer.Deserialize<SanctuarySaveData>(json, JsonOptions);
 			if (saveData == null || saveData.Creatures == null)
 			{
 				ReportFailure("Save data is empty or malformed.", showFeedback);
@@ -129,18 +173,28 @@ public partial class SaveManager : Node
 		catch (JsonException exception)
 		{
 			ReportFailure($"Save data is corrupt: {exception.Message}", showFeedback);
+			GD.PrintErr(exception.ToString());
 			return false;
 		}
 		catch (Exception exception)
 		{
 			ReportFailure($"Unable to load game: {exception.Message}", showFeedback);
+			GD.PrintErr(exception.ToString());
 			return false;
+		}
+		finally
+		{
+			_isLoading = false;
 		}
 	}
 
 	private SanctuarySaveData BuildSaveData()
 	{
-		SanctuarySaveData saveData = new() { Version = CurrentSaveVersion };
+		SanctuarySaveData saveData = new()
+		{
+			Version = CurrentSaveVersion,
+			WorldTime = _worldTime.CreateSaveData()
+		};
 		foreach (Creature creature in GetPersistentCreatures())
 		{
 			if (string.IsNullOrWhiteSpace(creature.PersistentId))
@@ -157,6 +211,12 @@ public partial class SaveManager : Node
 
 	private void ApplySaveData(SanctuarySaveData saveData)
 	{
+		GD.Print("World time apply started");
+		if (saveData.WorldTime != null)
+			_worldTime.RestoreSavedState(saveData.WorldTime);
+		GD.Print("World time apply completed");
+
+		GD.Print("Creature data apply started");
 		foreach (Creature creature in GetPersistentCreatures())
 		{
 			if (!string.IsNullOrWhiteSpace(creature.PersistentId)
@@ -166,6 +226,7 @@ public partial class SaveManager : Node
 				creature.ApplySaveData(creatureData);
 			}
 		}
+		GD.Print("Creature data apply completed");
 	}
 
 	private IEnumerable<Creature> GetPersistentCreatures()

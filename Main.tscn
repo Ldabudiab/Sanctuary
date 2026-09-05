@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://Ruby.tscn" id="11_ruby"]
 [ext_resource type="PackedScene" path="res://FightActivity.tscn" id="12_fight"]
 [ext_resource type="Script" path="res://SaveManager.cs" id="13_save_manager"]
+[ext_resource type="Script" path="res://WorldTime.cs" id="14_world_time"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -95,9 +96,17 @@ Creature2Path = NodePath("../Creature2")
 Creature1Path = NodePath("../Creature1")
 Creature2Path = NodePath("../Creature2")
 
+[node name="DayNightModulate" type="CanvasModulate" parent="."]
+
+[node name="WorldTime" type="Node" parent="."]
+script = ExtResource("14_world_time")
+CanvasModulatePath = NodePath("../DayNightModulate")
+DebugLabelPath = NodePath("../TimeDebug/Label")
+
 [node name="SaveManager" type="Node" parent="."]
 script = ExtResource("13_save_manager")
 FeedbackLabelPath = NodePath("../SaveFeedback/Message")
+WorldTimePath = NodePath("../WorldTime")
 
 [node name="SaveFeedback" type="CanvasLayer" parent="."]
 layer = 20
@@ -117,6 +126,26 @@ horizontal_alignment = 1
 
 [node name="DebugUI" type="CanvasLayer" parent="." unique_id=1106291833]
 layer = 10
+
+[node name="TimeDebug" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Background" type="ColorRect" parent="TimeDebug"]
+offset_left = 418.0
+offset_top = 12.0
+offset_right = 628.0
+offset_bottom = 58.0
+mouse_filter = 2
+color = Color(0.04, 0.05, 0.06, 0.82)
+
+[node name="Label" type="Label" parent="TimeDebug"]
+offset_left = 426.0
+offset_top = 17.0
+offset_right = 622.0
+offset_bottom = 53.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Day 1  Day  00:00 / 03:00\nF4: Load  F5: Save  F6: +30s  F7: Next day"
 
 [node name="Background" type="ColorRect" parent="DebugUI" unique_id=2060253970]
 offset_left = 12.0

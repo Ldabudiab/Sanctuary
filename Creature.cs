@@ -84,6 +84,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public string PersistentId { get; set; } = string.Empty;
 
+	public int Age { get; private set; }
 	public string CurrentAiState { get; private set; } = "Idle";
 	public float CompetitionSpeed => _stats.GetValue(CreatureStatType.Speed);
 	public float CompetitionPower => _stats.GetValue(CreatureStatType.Power);
@@ -885,6 +886,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	{
 		return new CreatureSaveData
 		{
+			Age = Age,
 			Stats = new CreatureStatsSaveData
 			{
 				Speed = _stats.Speed,
@@ -912,6 +914,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public void ApplySaveData(CreatureSaveData saveData)
 	{
+		Age = Mathf.Max(0, saveData.Age);
+
 		if (saveData.Stats != null)
 		{
 			_stats.ApplySavedValues(
@@ -939,5 +943,11 @@ public partial class Creature : CharacterBody2D, IInteractable
 				saveData.Needs.Happiness,
 				saveData.Needs.Energy);
 		}
+	}
+
+	public void IncreaseAge(int amount)
+	{
+		if (amount > 0)
+			Age += amount;
 	}
 }
