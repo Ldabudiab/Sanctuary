@@ -6,17 +6,24 @@ public partial class CreatureVisualController : Node2D
 	private const int FrameHeight = 160;
 
 	[Export]
-	public Texture2D AnimationSheet { get; set; } = null!;
+	public Texture2D BaseAnimationSheet { get; set; } = null!;
+
+	[Export]
+	public Texture2D StarAnimationSheet { get; set; } = null!;
+
+	[Export]
+	public Texture2D VoidAnimationSheet { get; set; } = null!;
 
 	private Creature _creature = null!;
 	private AnimatedSprite2D _sprite = null!;
 	private float _actionOverrideTime;
+	private CreatureEvolutionType _currentForm = CreatureEvolutionType.Base;
 
 	public override void _Ready()
 	{
 		_creature = GetParent<Creature>();
 		_sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-		_sprite.SpriteFrames = BuildSpriteFrames();
+		_sprite.SpriteFrames = BuildSpriteFrames(BaseAnimationSheet);
 		PlayIfChanged("idle");
 	}
 
@@ -49,6 +56,23 @@ public partial class CreatureVisualController : Node2D
 	public void PlayHurt()
 	{
 		PlayActionOverride("hurt", 0.45f);
+	}
+
+	public void SetEvolutionForm(CreatureEvolutionType form)
+	{
+		Texture2D selectedSheet = form switch
+		{
+			CreatureEvolutionType.Star => StarAnimationSheet,
+			CreatureEvolutionType.Void => VoidAnimationSheet,
+			_ => BaseAnimationSheet
+		};
+
+		if (_currentForm == form && _sprite.SpriteFrames != null)
+			return;
+
+		_currentForm = form;
+		_sprite.SpriteFrames = BuildSpriteFrames(selectedSheet);
+		PlayIfChanged(SelectAnimation());
 	}
 
 	private string SelectAnimation()
@@ -86,23 +110,24 @@ public partial class CreatureVisualController : Node2D
 		_sprite.Play(animation);
 	}
 
-	private SpriteFrames BuildSpriteFrames()
+	private SpriteFrames BuildSpriteFrames(Texture2D animationSheet)
 	{
 		SpriteFrames frames = new();
 		frames.RemoveAnimation("default");
-		AddAnimation(frames, "idle", 0, 4, 3.5f, true);
-		AddAnimation(frames, "walk", 1, 6, 8.0f, true);
-		AddAnimation(frames, "run", 2, 6, 11.0f, true);
-		AddAnimation(frames, "sleep", 3, 6, 4.0f, true);
-		AddAnimation(frames, "happy", 4, 4, 6.0f, true);
-		AddAnimation(frames, "eat", 5, 6, 7.0f, true);
-		AddAnimation(frames, "attack", 6, 6, 11.0f, false);
-		AddAnimation(frames, "hurt", 7, 4, 9.0f, false);
+		AddAnimation(frames, animationSheet, "idle", 0, 4, 3.5f, true);
+		AddAnimation(frames, animationSheet, "walk", 1, 6, 8.0f, true);
+		AddAnimation(frames, animationSheet, "run", 2, 6, 11.0f, true);
+		AddAnimation(frames, animationSheet, "sleep", 3, 6, 4.0f, true);
+		AddAnimation(frames, animationSheet, "happy", 4, 4, 6.0f, true);
+		AddAnimation(frames, animationSheet, "eat", 5, 6, 7.0f, true);
+		AddAnimation(frames, animationSheet, "attack", 6, 6, 11.0f, false);
+		AddAnimation(frames, animationSheet, "hurt", 7, 4, 9.0f, false);
 		return frames;
 	}
 
 	private void AddAnimation(
 		SpriteFrames frames,
+		Texture2D animationSheet,
 		StringName animationName,
 		int row,
 		int frameCount,
@@ -119,7 +144,7 @@ public partial class CreatureVisualController : Node2D
 		{
 			AtlasTexture frame = new()
 			{
-				Atlas = AnimationSheet,
+				Atlas = animationSheet,
 				Region = new Rect2(column * FrameWidth, row * FrameHeight, FrameWidth, FrameHeight),
 				FilterClip = true
 			};

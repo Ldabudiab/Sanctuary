@@ -16,6 +16,7 @@ public sealed class WorldTimeSaveData
 public sealed class CreatureSaveData
 {
 	public int Age { get; set; }
+	public CreatureEvolutionType Evolution { get; set; } = CreatureEvolutionType.Base;
 	public CreatureStatsSaveData Stats { get; set; } = new();
 	public CreaturePersonalitySaveData Personality { get; set; } = new();
 	public CreatureNeedsSaveData Needs { get; set; } = new();

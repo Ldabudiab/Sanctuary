@@ -118,7 +118,7 @@ public partial class WorldTime : Node
 		{
 			double phaseElapsed = IsDay ? TimeOfDay : TimeOfDay - DayDuration;
 			double phaseDuration = IsDay ? DayDuration : NightDuration;
-			_debugLabel.Text = $"Day {CurrentDay}  {(IsDay ? "Day" : "Night")}  {FormatTime(phaseElapsed)} / {FormatTime(phaseDuration)}\nF4: Load  F5: Save  F6: +30s  F7: Next day";
+			_debugLabel.Text = $"Day {CurrentDay}  {(IsDay ? "Day" : "Night")}  {FormatTime(phaseElapsed)} / {FormatTime(phaseDuration)}\nF2: +25 Age  F3: Prep C3 Void  F4: Load  F5: Save  F6: +30s  F7: Next day";
 		}
 	}
 

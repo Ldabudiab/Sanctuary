@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://CreatureStats.cs" id="6_stats"]
 [ext_resource type="Script" path="res://CreatureStamina.cs" id="7_stamina"]
 [ext_resource type="Script" path="res://CreatureDevelopment.cs" id="8_development"]
+[ext_resource type="Script" path="res://CreatureEvolution.cs" id="9_evolution"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
 radius = 12.0
@@ -22,12 +23,29 @@ border_color = Color(0.85, 0.9, 0.82, 0.9)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
 bg_color = Color(0.3, 0.78, 0.42, 1)
 
+[sub_resource type="Gradient" id="Gradient_evolution_glow"]
+colors = PackedColorArray(1, 0.95, 0.55, 0.72, 1, 0.95, 0.55, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_evolution_glow"]
+gradient = SubResource("Gradient_evolution_glow")
+width = 48
+height = 48
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
 [node name="Creature" type="CharacterBody2D" unique_id=1480241217 groups=["creatures"]]
 collision_layer = 4
 collision_mask = 1
 script = ExtResource("1_creature")
 
 [node name="Visual" parent="." instance=ExtResource("4_visual")]
+
+[node name="EvolutionGlow" type="Sprite2D" parent="."]
+visible = false
+z_index = -1
+position = Vector2(0, -4)
+texture = SubResource("GradientTexture2D_evolution_glow")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1665040533]
 shape = SubResource("CircleShape2D_creature")
@@ -121,6 +139,9 @@ script = ExtResource("6_stats")
 
 [node name="Development" type="Node" parent="."]
 script = ExtResource("8_development")
+
+[node name="Evolution" type="Node" parent="."]
+script = ExtResource("9_evolution")
 
 [node name="Stamina" type="Node" parent="."]
 script = ExtResource("7_stamina")

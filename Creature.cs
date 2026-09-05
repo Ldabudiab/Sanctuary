@@ -39,6 +39,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public float EatReactionDuration { get; set; } = 2.0f;
 
+	[Export(PropertyHint.Range, "0.25,5,0.05")]
+	public float EvolutionPresentationDuration { get; set; } = 1.25f;
+
 	[Export]
 	public float PlayerApproachRange { get; set; } = 320.0f;
 
@@ -82,6 +85,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	public string PersistentId { get; set; } = string.Empty;
 
 	public int Age { get; private set; }
+	public CreatureEvolutionType EvolutionForm => _evolution.CurrentForm;
 	public string CurrentAiState { get; private set; } = "Idle";
 	public float CompetitionSpeed => _stats.GetValue(CreatureStatType.Speed);
 	public float CompetitionPower => _stats.GetValue(CreatureStatType.Power);
@@ -95,6 +99,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	private readonly RandomNumberGenerator _random = new();
 	private Node2D _visual = null!;
+	private Sprite2D _evolutionGlow = null!;
 	private Polygon2D _neutralMark = null!;
 	private Polygon2D _heart = null!;
 	private Polygon2D _eatingMark = null!;
@@ -107,6 +112,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private CreaturePersonality _personality = null!;
 	private CreatureStats _stats = null!;
 	private CreatureDevelopment _development = null!;
+	private CreatureEvolution _evolution = null!;
 	private CreatureStamina _stamina = null!;
 	private Player _player = null!;
 	private InterestPoint _investigationTarget = null!;
@@ -136,10 +142,13 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private Vector2 _fightLungeDirection;
 	private Reaction _reaction;
 	private SocialInteraction _socialInteraction;
+	private float _evolutionTimeRemaining;
+	private string _stateBeforeEvolution = "Idle";
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
+		_evolutionGlow = GetNode<Sprite2D>("EvolutionGlow");
 		_neutralMark = GetNode<Polygon2D>("NeutralIndicator/NeutralMark");
 		_heart = GetNode<Polygon2D>("NeutralIndicator/Heart");
 		_eatingMark = GetNode<Polygon2D>("NeutralIndicator/EatingMark");
@@ -152,14 +161,24 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_personality = GetNode<CreaturePersonality>("Personality");
 		_stats = GetNode<CreatureStats>("Stats");
 		_development = GetNode<CreatureDevelopment>("Development");
+		_evolution = GetNode<CreatureEvolution>("Evolution");
 		_stamina = GetNode<CreatureStamina>("Stamina");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 		_random.Randomize();
 		BeginIdle();
+		ApplyEvolutionVisual();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (_evolutionTimeRemaining > 0.0f)
+		{
+			UpdateEvolutionPresentation((float)delta);
+			Velocity = Vector2.Zero;
+			MoveAndSlide();
+			return;
+		}
+
 		if (_competitionMode == CompetitionMode.Race)
 		{
 			UpdateRaceMovement((float)delta);
@@ -259,12 +278,12 @@ public partial class Creature : CharacterBody2D, IInteractable
 				bool reachedMaximum = _development.ApplyIncrease(
 					item.DevelopmentType.Value,
 					item.DevelopmentIncrease);
+				BeginReaction(Reaction.Eating, EatReactionDuration);
 				IncreaseAge(item.AgeIncrease);
 				if (reachedMaximum)
 				{
 					GD.Print($"{Name} reached 100 {item.DevelopmentType.Value} development. The creature remains in its current Base form.");
 				}
-				BeginReaction(Reaction.Eating, EatReactionDuration);
 			}
 			else if (item.Kind == CarriedItemKind.Crystal && item.StatType.HasValue)
 			{
@@ -900,6 +919,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		return new CreatureSaveData
 		{
 			Age = Age,
+			Evolution = _evolution.CurrentForm,
 			Stats = new CreatureStatsSaveData
 			{
 				Speed = _stats.Speed,
@@ -934,6 +954,8 @@ public partial class Creature : CharacterBody2D, IInteractable
 	public void ApplySaveData(CreatureSaveData saveData)
 	{
 		Age = Mathf.Max(0, saveData.Age);
+		_evolution.RestoreSavedForm(saveData.Evolution);
+		ApplyEvolutionVisual();
 
 		if (saveData.Stats != null)
 		{
@@ -974,7 +996,58 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public void IncreaseAge(int amount)
 	{
-		if (amount > 0)
-			Age += amount;
+		if (amount <= 0)
+			return;
+
+		Age += amount;
+		CheckFirstEvolution();
+	}
+
+	public bool PrepareVoidEvolutionDebugTest()
+	{
+		if (_evolution.CurrentForm != CreatureEvolutionType.Base)
+		{
+			GD.PushWarning($"{Name} is already {_evolution.CurrentForm}; Void test setup requires a Base creature.");
+			return false;
+		}
+
+		_development.ApplySavedValues(0.0f, 0.0f, CreatureDevelopment.MaximumDevelopment);
+		Age = CreatureEvolution.FirstEvolutionAge - 1;
+		GD.Print($"{Name} prepared for Void evolution test: Star=0, Natural=0, Void=100, Age=99, Form=Base.");
+		return true;
+	}
+
+	private void CheckFirstEvolution()
+	{
+		if (!_evolution.TrySelectFirstEvolution(Age, _development))
+			return;
+
+		CancelSocialInteraction();
+		CancelInvestigation();
+		_stateBeforeEvolution = CurrentAiState;
+		_evolutionTimeRemaining = EvolutionPresentationDuration;
+		_evolutionGlow.Visible = true;
+		ApplyEvolutionVisual();
+		CurrentAiState = "Evolving";
+		GD.Print($"{Name} evolved into {_evolution.CurrentForm.ToString().ToUpperInvariant()}!");
+	}
+
+	private void UpdateEvolutionPresentation(float delta)
+	{
+		_evolutionTimeRemaining = Mathf.Max(0.0f, _evolutionTimeRemaining - delta);
+		float pulse = 0.45f + (Mathf.Sin(_evolutionTimeRemaining * Mathf.Tau * 3.0f) * 0.25f);
+		_evolutionGlow.Modulate = new Color(1.0f, 1.0f, 1.0f, pulse);
+
+		if (_evolutionTimeRemaining > 0.0f)
+			return;
+
+		_evolutionGlow.Visible = false;
+		_evolutionGlow.Modulate = Colors.White;
+		CurrentAiState = _stateBeforeEvolution;
+	}
+
+	private void ApplyEvolutionVisual()
+	{
+		GetNode<CreatureVisualController>("Visual").SetEvolutionForm(_evolution.CurrentForm);
 	}
 }

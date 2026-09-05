@@ -59,6 +59,10 @@ Curiosity = -80.0
 Social = 80.0
 Temperament = 80.0
 
+[node name="Creature3" parent="." instance=ExtResource("3_creature")]
+position = Vector2(200, 350)
+PersistentId = "creature_3"
+
 [node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
 position = Vector2(480, 360)
 
@@ -170,13 +174,13 @@ offset_right = 622.0
 offset_bottom = 53.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 10
-text = "Day 1  Day  00:00 / 03:00\nF4: Load  F5: Save  F6: +30s  F7: Next day"
+text = "Day 1  Day  00:00 / 03:00\nF2: +25 Age  F3: Prep C3 Void  F4: Load  F5: Save  F6: +30s  F7: Next day"
 
 [node name="Background" type="ColorRect" parent="DebugUI" unique_id=2060253970]
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 358.0
-offset_bottom = 166.0
+offset_bottom = 336.0
 mouse_filter = 2
 color = Color(0.04, 0.05, 0.06, 0.82)
 
@@ -184,7 +188,7 @@ color = Color(0.04, 0.05, 0.06, 0.82)
 offset_left = 22.0
 offset_top = 20.0
 offset_right = 174.0
-offset_bottom = 158.0
+offset_bottom = 170.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "Creature 1
@@ -207,7 +211,7 @@ DevelopmentPath = NodePath("../../Creature1/Development")
 offset_left = 184.0
 offset_top = 20.0
 offset_right = 348.0
-offset_bottom = 158.0
+offset_bottom = 170.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "Creature 2
@@ -226,5 +230,20 @@ CreaturePath = NodePath("../../Creature2")
 StatsPath = NodePath("../../Creature2/Stats")
 DevelopmentPath = NodePath("../../Creature2/Development")
 
+[node name="Creature3" type="Label" parent="DebugUI"]
+offset_left = 22.0
+offset_top = 178.0
+offset_right = 174.0
+offset_bottom = 328.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Creature 3\nState: Idle\nForm: Base\nAge: 0\nStar: 0\nNatural: 0\nVoid: 0\nSpeed: 0\nPower: 0\nEndurance: 0\nSwimming: 0\nIntelligence: 0"
+script = ExtResource("4_needs_debug")
+CreatureLabel = "Creature 3"
+CreaturePath = NodePath("../../Creature3")
+StatsPath = NodePath("../../Creature3/Stats")
+DevelopmentPath = NodePath("../../Creature3/Development")
+
 [editable path="Creature1"]
 [editable path="Creature2"]
+[editable path="Creature3"]
