@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://CreatureVisual.tscn" id="4_visual"]
 [ext_resource type="Script" path="res://CreatureStats.cs" id="6_stats"]
 [ext_resource type="Script" path="res://CreatureStamina.cs" id="7_stamina"]
+[ext_resource type="Script" path="res://CreatureDevelopment.cs" id="8_development"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_creature"]
 radius = 12.0
@@ -117,6 +118,9 @@ Activity = -100.0
 
 [node name="Stats" type="Node" parent="."]
 script = ExtResource("6_stats")
+
+[node name="Development" type="Node" parent="."]
+script = ExtResource("8_development")
 
 [node name="Stamina" type="Node" parent="."]
 script = ExtResource("7_stamina")

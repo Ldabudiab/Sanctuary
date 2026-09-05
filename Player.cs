@@ -13,6 +13,9 @@ public partial class Player : CharacterBody2D
 	private Area2D _interactionArea = null!;
 	private CanvasItem _carriedFoodVisual = null!;
 	private CanvasItem _carriedCrystalVisual = null!;
+	private CanvasItem _carriedEvolutionFruitVisual = null!;
+	private Polygon2D _carriedEvolutionFruitShape = null!;
+	private Polygon2D _carriedEvolutionFruitAccent = null!;
 	private Polygon2D _carriedCrystalShape = null!;
 	private Polygon2D _carriedCrystalHighlight = null!;
 
@@ -24,6 +27,9 @@ public partial class Player : CharacterBody2D
 		_carriedCrystalVisual = GetNode<CanvasItem>("CarriedCrystalVisual");
 		_carriedCrystalShape = GetNode<Polygon2D>("CarriedCrystalVisual/Crystal");
 		_carriedCrystalHighlight = GetNode<Polygon2D>("CarriedCrystalVisual/Highlight");
+		_carriedEvolutionFruitVisual = GetNode<CanvasItem>("CarriedEvolutionFruitVisual");
+		_carriedEvolutionFruitShape = GetNode<Polygon2D>("CarriedEvolutionFruitVisual/Fruit");
+		_carriedEvolutionFruitAccent = GetNode<Polygon2D>("CarriedEvolutionFruitVisual/Accent");
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -145,6 +151,19 @@ public partial class Player : CharacterBody2D
 	{
 		_carriedFoodVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Food;
 		_carriedCrystalVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Crystal;
+		_carriedEvolutionFruitVisual.Visible = CarriedItem?.Kind == CarriedItemKind.EvolutionFruit;
+
+		if (CarriedItem?.Kind == CarriedItemKind.EvolutionFruit && CarriedItem.DevelopmentType.HasValue)
+		{
+			(_carriedEvolutionFruitShape.Color, _carriedEvolutionFruitAccent.Color) =
+				CarriedItem.DevelopmentType.Value switch
+				{
+					CreatureDevelopmentType.Star => (new Color(0.98f, 0.75f, 0.2f), new Color(1.0f, 0.96f, 0.58f)),
+					CreatureDevelopmentType.Natural => (new Color(0.3f, 0.75f, 0.3f), new Color(0.72f, 0.95f, 0.42f)),
+					CreatureDevelopmentType.Void => (new Color(0.38f, 0.2f, 0.62f), new Color(0.82f, 0.45f, 0.96f)),
+					_ => (Colors.White, Colors.White)
+				};
+		}
 
 		if (CarriedItem?.Kind != CarriedItemKind.Crystal)
 			return;

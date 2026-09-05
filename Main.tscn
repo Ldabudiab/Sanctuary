@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://FightActivity.tscn" id="12_fight"]
 [ext_resource type="Script" path="res://SaveManager.cs" id="13_save_manager"]
 [ext_resource type="Script" path="res://WorldTime.cs" id="14_world_time"]
+[ext_resource type="PackedScene" path="res://EvolutionFruit.tscn" id="15_evolution_fruit"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -85,6 +86,30 @@ position = Vector2(760, 430)
 [node name="Ruby4" parent="." instance=ExtResource("11_ruby")]
 position = Vector2(1140, 390)
 
+[node name="StarFruit1" parent="." instance=ExtResource("15_evolution_fruit")]
+position = Vector2(310, 420)
+DevelopmentType = 0
+
+[node name="StarFruit2" parent="." instance=ExtResource("15_evolution_fruit")]
+position = Vector2(390, 500)
+DevelopmentType = 0
+
+[node name="NaturalFruit1" parent="." instance=ExtResource("15_evolution_fruit")]
+position = Vector2(600, 500)
+DevelopmentType = 1
+
+[node name="NaturalFruit2" parent="." instance=ExtResource("15_evolution_fruit")]
+position = Vector2(680, 620)
+DevelopmentType = 1
+
+[node name="Voidberry1" parent="." instance=ExtResource("15_evolution_fruit")]
+position = Vector2(970, 250)
+DevelopmentType = 2
+
+[node name="Voidberry2" parent="." instance=ExtResource("15_evolution_fruit")]
+position = Vector2(1080, 520)
+DevelopmentType = 2
+
 [node name="InterestPoint" parent="." instance=ExtResource("6_interest_point")]
 position = Vector2(1010, 430)
 
@@ -151,7 +176,7 @@ text = "Day 1  Day  00:00 / 03:00\nF4: Load  F5: Save  F6: +30s  F7: Next day"
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 358.0
-offset_bottom = 126.0
+offset_bottom = 166.0
 mouse_filter = 2
 color = Color(0.04, 0.05, 0.06, 0.82)
 
@@ -159,7 +184,7 @@ color = Color(0.04, 0.05, 0.06, 0.82)
 offset_left = 22.0
 offset_top = 20.0
 offset_right = 174.0
-offset_bottom = 118.0
+offset_bottom = 158.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "Creature 1
@@ -176,12 +201,13 @@ script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 1"
 CreaturePath = NodePath("../../Creature1")
 StatsPath = NodePath("../../Creature1/Stats")
+DevelopmentPath = NodePath("../../Creature1/Development")
 
 [node name="Creature2" type="Label" parent="DebugUI"]
 offset_left = 184.0
 offset_top = 20.0
 offset_right = 348.0
-offset_bottom = 118.0
+offset_bottom = 158.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "Creature 2
@@ -198,6 +224,7 @@ script = ExtResource("4_needs_debug")
 CreatureLabel = "Creature 2"
 CreaturePath = NodePath("../../Creature2")
 StatsPath = NodePath("../../Creature2/Stats")
+DevelopmentPath = NodePath("../../Creature2/Development")
 
 [editable path="Creature1"]
 [editable path="Creature2"]

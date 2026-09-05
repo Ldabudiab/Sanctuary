@@ -78,9 +78,6 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export(PropertyHint.Range, "1,4,0.1")]
 	public float RunSpeedMultiplier { get; set; } = 2.0f;
 
-	[Export(PropertyHint.Range, "0,10,1")]
-	public float FeedingEnduranceGain { get; set; } = 1.0f;
-
 	[Export]
 	public string PersistentId { get; set; } = string.Empty;
 
@@ -109,6 +106,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 	private CreatureNeeds _needs = null!;
 	private CreaturePersonality _personality = null!;
 	private CreatureStats _stats = null!;
+	private CreatureDevelopment _development = null!;
 	private CreatureStamina _stamina = null!;
 	private Player _player = null!;
 	private InterestPoint _investigationTarget = null!;
@@ -153,6 +151,7 @@ public partial class Creature : CharacterBody2D, IInteractable
 		_needs = GetNode<CreatureNeeds>("Needs");
 		_personality = GetNode<CreaturePersonality>("Personality");
 		_stats = GetNode<CreatureStats>("Stats");
+		_development = GetNode<CreatureDevelopment>("Development");
 		_stamina = GetNode<CreatureStamina>("Stamina");
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 		_random.Randomize();
@@ -249,8 +248,22 @@ public partial class Creature : CharacterBody2D, IInteractable
 			if (item.Kind == CarriedItemKind.Food)
 			{
 				_needs.ApplyFeeding();
-				_personality.ApplyFeeding();
-				_stats.ApplyIncrease(CreatureStatType.Endurance, FeedingEnduranceGain);
+				if (item.ImprovesAttachment)
+					_personality.ApplyFeeding();
+				_stats.ApplyIncrease(CreatureStatType.Endurance, item.EnduranceIncrease);
+				BeginReaction(Reaction.Eating, EatReactionDuration);
+			}
+			else if (item.Kind == CarriedItemKind.EvolutionFruit && item.DevelopmentType.HasValue)
+			{
+				_needs.ApplyFeeding();
+				bool reachedMaximum = _development.ApplyIncrease(
+					item.DevelopmentType.Value,
+					item.DevelopmentIncrease);
+				IncreaseAge(item.AgeIncrease);
+				if (reachedMaximum)
+				{
+					GD.Print($"{Name} reached 100 {item.DevelopmentType.Value} development. The creature remains in its current Base form.");
+				}
 				BeginReaction(Reaction.Eating, EatReactionDuration);
 			}
 			else if (item.Kind == CarriedItemKind.Crystal && item.StatType.HasValue)
@@ -908,6 +921,12 @@ public partial class Creature : CharacterBody2D, IInteractable
 				Hunger = _needs.Hunger,
 				Happiness = _needs.Happiness,
 				Energy = _needs.Energy
+			},
+			Development = new CreatureDevelopmentSaveData
+			{
+				Star = _development.Star,
+				Natural = _development.Natural,
+				Void = _development.Void
 			}
 		};
 	}
@@ -942,6 +961,14 @@ public partial class Creature : CharacterBody2D, IInteractable
 				saveData.Needs.Hunger,
 				saveData.Needs.Happiness,
 				saveData.Needs.Energy);
+		}
+
+		if (saveData.Development != null)
+		{
+			_development.ApplySavedValues(
+				saveData.Development.Star,
+				saveData.Development.Natural,
+				saveData.Development.Void);
 		}
 	}
 

@@ -73,6 +73,22 @@ color = Color(0.16, 0.78, 0.38, 1)
 polygon = PackedVector2Array(-1, -7, 3, -4, 1, 4, -2, 5)
 color = Color(0.68, 1, 0.74, 0.9)
 
+[node name="CarriedEvolutionFruitVisual" type="Node2D" parent="."]
+visible = false
+position = Vector2(18, -24)
+
+[node name="Fruit" type="Polygon2D" parent="CarriedEvolutionFruitVisual"]
+polygon = PackedVector2Array(0, -11, 4, -6, 9, -4, 6, 1, 7, 7, 0, 5, -7, 7, -6, 1, -9, -4, -4, -6)
+color = Color(0.98, 0.75, 0.2, 1)
+
+[node name="Accent" type="Polygon2D" parent="CarriedEvolutionFruitVisual"]
+polygon = PackedVector2Array(-1, -7, 2, -7, 2, -2, 6, -1, 4, 2, 1, 0, -2, 4, -4, 2, -2, -1)
+color = Color(1, 0.96, 0.58, 1)
+
+[node name="Stem" type="Polygon2D" parent="CarriedEvolutionFruitVisual"]
+polygon = PackedVector2Array(-1, -10, 0, -15, 3, -14, 2, -10)
+color = Color(0.2, 0.5, 0.2, 1)
+
 [node name="InteractionArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 12

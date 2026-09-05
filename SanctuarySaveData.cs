@@ -19,6 +19,14 @@ public sealed class CreatureSaveData
 	public CreatureStatsSaveData Stats { get; set; } = new();
 	public CreaturePersonalitySaveData Personality { get; set; } = new();
 	public CreatureNeedsSaveData Needs { get; set; } = new();
+	public CreatureDevelopmentSaveData Development { get; set; } = new();
+}
+
+public sealed class CreatureDevelopmentSaveData
+{
+	public float Star { get; set; }
+	public float Natural { get; set; }
+	public float Void { get; set; }
 }
 
 public sealed class CreatureStatsSaveData
