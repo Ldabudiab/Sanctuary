@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://SaveManager.cs" id="13_save_manager"]
 [ext_resource type="Script" path="res://WorldTime.cs" id="14_world_time"]
 [ext_resource type="PackedScene" path="res://EvolutionFruit.tscn" id="15_evolution_fruit"]
+[ext_resource type="Script" path="res://StatsWindowToggle.cs" id="16_stats_toggle"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -154,7 +155,25 @@ text = "Game Saved"
 horizontal_alignment = 1
 
 [node name="DebugUI" type="CanvasLayer" parent="." unique_id=1106291833]
+visible = false
 layer = 10
+
+[node name="StatsHud" type="CanvasLayer" parent="."]
+layer = 11
+script = ExtResource("16_stats_toggle")
+StatsWindowPath = NodePath("../DebugUI")
+
+[node name="StatsButton" type="Button" parent="StatsHud"]
+offset_left = 574.0
+offset_top = 64.0
+offset_right = 628.0
+offset_bottom = 86.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+toggle_mode = true
+theme_override_font_sizes/font_size = 10
+text = "Stats"
+tooltip_text = "Show or hide creature stats (.)"
 
 [node name="TimeDebug" type="CanvasLayer" parent="."]
 layer = 10
