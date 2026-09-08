@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://WorldArea.cs" id="1_world"]
 [ext_resource type="PackedScene" path="res://Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://DoorwayTrigger.tscn" id="3_doorway"]
+[ext_resource type="PackedScene" path="res://Tekashi.tscn" id="4_tekashi"]
+[ext_resource type="PackedScene" path="res://TekashiDialogue.tscn" id="5_dialogue"]
+[ext_resource type="PackedScene" path="res://EggShopUI.tscn" id="6_shop"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
 size = Vector2(1280, 48)
@@ -98,3 +101,15 @@ DestinationSpawnPoint = "FromCave"
 position = Vector2(640, 30)
 DestinationScenePath = "res://HomeProperty.tscn"
 DestinationSpawnPoint = "FromCave"
+
+[node name="Tekashi" parent="." instance=ExtResource("4_tekashi")]
+position = Vector2(760, 360)
+DialoguePath = NodePath("../Interface/TekashiDialogue")
+
+[node name="Interface" type="CanvasLayer" parent="."]
+layer = 30
+
+[node name="TekashiDialogue" parent="Interface" instance=ExtResource("5_dialogue")]
+ShopPath = NodePath("../EggShop")
+
+[node name="EggShop" parent="Interface" instance=ExtResource("6_shop")]

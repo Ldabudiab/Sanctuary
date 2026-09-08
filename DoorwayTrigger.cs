@@ -15,7 +15,7 @@ public partial class DoorwayTrigger : Area2D
 
 	private void OnBodyEntered(Node2D body)
 	{
-		if (body is Player)
+		if (body is Player player && player.IsGameplayInputEnabled)
 			WorldTransition.TryTravel(this, DestinationScenePath, DestinationSpawnPoint);
 	}
 }

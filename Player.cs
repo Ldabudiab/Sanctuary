@@ -8,6 +8,7 @@ public partial class Player : CharacterBody2D
 	public Vector2 FacingDirection { get; private set; } = Vector2.Down;
 	public CarriedItem CarriedItem { get; private set; }
 	public bool IsCarryingFood => CarriedItem?.Kind == CarriedItemKind.Food;
+	public bool IsGameplayInputEnabled { get; private set; } = true;
 
 	private Node2D _visual = null!;
 	private Area2D _interactionArea = null!;
@@ -34,7 +35,8 @@ public partial class Player : CharacterBody2D
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
-		if (@event is InputEventKey keyEvent
+		if (IsGameplayInputEnabled
+			&& @event is InputEventKey keyEvent
 			&& keyEvent.Pressed
 			&& !keyEvent.Echo
 			&& (keyEvent.Keycode == Key.E || keyEvent.PhysicalKeycode == Key.E))
@@ -46,6 +48,13 @@ public partial class Player : CharacterBody2D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (!IsGameplayInputEnabled)
+		{
+			Velocity = Vector2.Zero;
+			MoveAndSlide();
+			return;
+		}
+
 		Vector2 inputDirection = Vector2.Zero;
 
 		if (Input.IsKeyPressed(Key.A) || Input.IsKeyPressed(Key.Left))
@@ -145,6 +154,13 @@ public partial class Player : CharacterBody2D
 	public void SetCarryingFood(bool isCarryingFood)
 	{
 		SetCarriedItem(isCarryingFood ? CarriedItem.CreateFood() : null);
+	}
+
+	public void SetGameplayInputEnabled(bool enabled)
+	{
+		IsGameplayInputEnabled = enabled;
+		if (!enabled)
+			Velocity = Vector2.Zero;
 	}
 
 	private void UpdateCarriedItemVisual()
