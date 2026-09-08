@@ -1,0 +1,60 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://EggNest.cs" id="1_nest"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
+radius = 24.0
+
+[node name="EggNest" type="Area2D" groups=["egg_nests"]]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_nest")
+
+[node name="NestOuter" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(-25, -4, -20, -12, -9, -17, 8, -17, 21, -11, 26, -3, 22, 7, 10, 13, -9, 13, -21, 7)
+color = Color(0.43, 0.3, 0.18, 1)
+
+[node name="NestInner" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-18, -3, -13, -9, -5, -12, 8, -11, 16, -7, 19, -2, 15, 5, 7, 8, -7, 8, -15, 4)
+color = Color(0.68, 0.5, 0.27, 1)
+
+[node name="Egg" type="Node2D" parent="."]
+visible = false
+position = Vector2(0, -11)
+
+[node name="Body" type="Polygon2D" parent="Egg"]
+polygon = PackedVector2Array(0, -17, 8, -11, 12, -2, 10, 9, 4, 14, -4, 14, -10, 9, -12, -2, -8, -11)
+color = Color(0.96, 0.91, 0.73, 1)
+
+[node name="Mark" type="Polygon2D" parent="Egg"]
+polygon = PackedVector2Array(-3, -7, 2, -11, 7, -6, 4, -1, -1, 1, -5, -2)
+color = Color(0.43, 0.75, 0.42, 1)
+
+[node name="Prompt" type="Label" parent="."]
+visible = false
+offset_left = -55.0
+offset_top = 20.0
+offset_right = 55.0
+offset_bottom = 39.0
+theme_override_colors/font_color = Color(1, 0.95, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.06, 0.04, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 10
+text = "E - Place Egg"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="."]
+visible = false
+offset_left = -75.0
+offset_top = -55.0
+offset_right = 75.0
+offset_bottom = -34.0
+theme_override_colors/font_color = Color(1, 0.95, 0.74, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.06, 0.04, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_interaction")

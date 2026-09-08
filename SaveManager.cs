@@ -15,6 +15,9 @@ public partial class SaveManager : Node
 	[Export]
 	public NodePath WorldTimePath { get; set; } = null!;
 
+	[Export]
+	public NodePath EggAcquisitionPath { get; set; } = null!;
+
 	private static readonly JsonSerializerOptions JsonOptions = new()
 	{
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -24,6 +27,7 @@ public partial class SaveManager : Node
 
 	private Label _feedbackLabel = null!;
 	private WorldTime _worldTime = null!;
+	private EggAcquisitionManager _eggAcquisition = null!;
 	private readonly List<Creature> _persistentCreatures = new();
 	private float _feedbackTimeRemaining;
 	private bool _manualLoadPending;
@@ -33,10 +37,11 @@ public partial class SaveManager : Node
 	{
 		_feedbackLabel = GetNode<Label>(FeedbackLabelPath);
 		_worldTime = GetNode<WorldTime>(WorldTimePath);
+		_eggAcquisition = GetNode<EggAcquisitionManager>(EggAcquisitionPath);
 		foreach (Node node in GetTree().GetNodesInGroup("creatures"))
 		{
 			if (node is Creature creature)
-				_persistentCreatures.Add(creature);
+				RegisterCreature(creature);
 		}
 	}
 
@@ -195,7 +200,8 @@ public partial class SaveManager : Node
 		{
 			Version = CurrentSaveVersion,
 			WorldTime = _worldTime.CreateSaveData(),
-			Inventory = PlayerInventory.Current.CreateSaveData()
+			Inventory = PlayerInventory.Current.CreateSaveData(),
+			EggAcquisition = _eggAcquisition.CreateSaveData()
 		};
 		foreach (Creature creature in GetPersistentCreatures())
 		{
@@ -218,6 +224,8 @@ public partial class SaveManager : Node
 			_worldTime.RestoreSavedState(saveData.WorldTime);
 		GD.Print("World time apply completed");
 
+		_eggAcquisition.PrepareLoadedPucas(saveData);
+
 		GD.Print("Creature data apply started");
 		foreach (Creature creature in GetPersistentCreatures())
 		{
@@ -230,21 +238,35 @@ public partial class SaveManager : Node
 		}
 		GD.Print("Creature data apply completed");
 
+		_eggAcquisition.RestoreNests(saveData.EggAcquisition ?? new EggAcquisitionSaveData());
 		PlayerInventory.Current.Restore(saveData.Inventory ?? new InventorySaveData());
 	}
 
 	public void LoadInitialGame()
 	{
-		if (InitialLoadAttempted)
-			return;
-
+		InventorySaveData sessionInventory = InitialLoadAttempted
+			? PlayerInventory.Current.CreateSaveData()
+			: null;
 		InitialLoadAttempted = true;
 		LoadGame();
+		if (sessionInventory != null)
+			PlayerInventory.Current.Restore(sessionInventory);
 	}
 
 	private IEnumerable<Creature> GetPersistentCreatures()
 	{
 		return _persistentCreatures;
+	}
+
+	public void RegisterCreature(Creature creature)
+	{
+		if (IsInstanceValid(creature) && !_persistentCreatures.Contains(creature))
+			_persistentCreatures.Add(creature);
+	}
+
+	public void UnregisterCreature(Creature creature)
+	{
+		_persistentCreatures.Remove(creature);
 	}
 
 	private void ReportFailure(string message, bool showFeedback)

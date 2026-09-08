@@ -30,6 +30,7 @@ public partial class WorldTime : Node
 	public int CurrentDay { get; private set; } = 1;
 	public double TimeOfDay { get; private set; }
 	public double FullCycleDuration => DayDuration + NightDuration;
+	public double TotalElapsedGameTime => ((CurrentDay - 1) * FullCycleDuration) + TimeOfDay;
 	public double NormalizedDayProgress => FullCycleDuration <= 0.0 ? 0.0 : TimeOfDay / FullCycleDuration;
 	public bool IsDay => TimeOfDay < DayDuration;
 

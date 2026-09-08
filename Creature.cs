@@ -84,6 +84,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 	[Export]
 	public string PersistentId { get; set; } = string.Empty;
 
+	[Export]
+	public bool IsAcquiredPuca { get; set; }
+
 	public int Age { get; private set; }
 	public CreatureEvolutionType EvolutionForm => _evolution.CurrentForm;
 	public string CurrentAiState { get; private set; } = "Idle";
@@ -919,6 +922,9 @@ public partial class Creature : CharacterBody2D, IInteractable
 		return new CreatureSaveData
 		{
 			Age = Age,
+			IsAcquired = IsAcquiredPuca,
+			PositionX = GlobalPosition.X,
+			PositionY = GlobalPosition.Y,
 			Evolution = _evolution.CurrentForm,
 			Stats = new CreatureStatsSaveData
 			{
@@ -953,6 +959,12 @@ public partial class Creature : CharacterBody2D, IInteractable
 
 	public void ApplySaveData(CreatureSaveData saveData)
 	{
+		if (saveData.IsAcquired)
+		{
+			IsAcquiredPuca = true;
+			GlobalPosition = new Vector2(saveData.PositionX, saveData.PositionY);
+		}
+
 		Age = Mathf.Max(0, saveData.Age);
 		_evolution.RestoreSavedForm(saveData.Evolution);
 		ApplyEvolutionVisual();

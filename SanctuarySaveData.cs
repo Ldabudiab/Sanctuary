@@ -6,6 +6,19 @@ public sealed class SanctuarySaveData
 	public WorldTimeSaveData WorldTime { get; set; } = new();
 	public Dictionary<string, CreatureSaveData> Creatures { get; set; } = new();
 	public InventorySaveData Inventory { get; set; } = new();
+	public EggAcquisitionSaveData EggAcquisition { get; set; } = new();
+}
+
+public sealed class EggAcquisitionSaveData
+{
+	public int NextPucaNumber { get; set; } = 4;
+	public Dictionary<string, EggNestSaveData> Nests { get; set; } = new();
+}
+
+public sealed class EggNestSaveData
+{
+	public bool HasEgg { get; set; }
+	public double IncubationStartedAt { get; set; }
 }
 
 public sealed class InventorySaveData
@@ -28,6 +41,9 @@ public sealed class WorldTimeSaveData
 public sealed class CreatureSaveData
 {
 	public int Age { get; set; }
+	public bool IsAcquired { get; set; }
+	public float PositionX { get; set; }
+	public float PositionY { get; set; }
 	public CreatureEvolutionType Evolution { get; set; } = CreatureEvolutionType.Base;
 	public CreatureStatsSaveData Stats { get; set; } = new();
 	public CreaturePersonalitySaveData Personality { get; set; } = new();

@@ -16,6 +16,8 @@
 [ext_resource type="Script" path="res://WorldTime.cs" id="14_world_time"]
 [ext_resource type="PackedScene" path="res://EvolutionFruit.tscn" id="15_evolution_fruit"]
 [ext_resource type="Script" path="res://StatsWindowToggle.cs" id="16_stats_toggle"]
+[ext_resource type="PackedScene" path="res://EggNest.tscn" id="17_egg_nest"]
+[ext_resource type="Script" path="res://EggAcquisitionManager.cs" id="18_egg_manager"]
 
 [node name="Main" type="Node2D" unique_id=264526547]
 script = ExtResource("1_glv2v")
@@ -63,6 +65,24 @@ Temperament = 80.0
 [node name="Creature3" parent="." instance=ExtResource("3_creature")]
 position = Vector2(200, 350)
 PersistentId = "creature_3"
+
+[node name="EggAcquisition" type="Node" parent="." groups=["egg_acquisition_manager"]]
+script = ExtResource("18_egg_manager")
+WorldTimePath = NodePath("../WorldTime")
+CreatureScene = ExtResource("3_creature")
+SaveManagerPath = NodePath("../SaveManager")
+
+[node name="EggNest1" parent="." instance=ExtResource("17_egg_nest")]
+position = Vector2(100, 120)
+PersistentId = "nest_1"
+
+[node name="EggNest2" parent="." instance=ExtResource("17_egg_nest")]
+position = Vector2(210, 120)
+PersistentId = "nest_2"
+
+[node name="EggNest3" parent="." instance=ExtResource("17_egg_nest")]
+position = Vector2(320, 120)
+PersistentId = "nest_3"
 
 [node name="Food" parent="." unique_id=672440039 instance=ExtResource("5_food")]
 position = Vector2(480, 360)
@@ -137,6 +157,7 @@ DebugLabelPath = NodePath("../TimeDebug/Label")
 script = ExtResource("13_save_manager")
 FeedbackLabelPath = NodePath("../SaveFeedback/Message")
 WorldTimePath = NodePath("../WorldTime")
+EggAcquisitionPath = NodePath("../EggAcquisition")
 
 [node name="SaveFeedback" type="CanvasLayer" parent="."]
 layer = 20
