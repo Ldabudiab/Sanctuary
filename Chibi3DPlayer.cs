@@ -8,11 +8,15 @@ public partial class Chibi3DPlayer : CharacterBody3D
 	[Export(PropertyHint.Range, "1,20,0.5")]
 	public float FacingSmoothing { get; set; } = 10.0f;
 
+	[Export(PropertyHint.Range, "0.25,3,0.05")]
+	public float VisualScale { get; set; } = 1.1f;
+
 	private float _gravity;
 
 	public override void _Ready()
 	{
 		_gravity = (float)ProjectSettings.GetSetting("physics/3d/default_gravity");
+		GetNode<Node3D>("Visual").Scale = Vector3.One * VisualScale;
 	}
 
 	public override void _PhysicsProcess(double delta)
