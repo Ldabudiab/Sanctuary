@@ -18,6 +18,19 @@ corner_radius_bottom_left = 10
 layer = 25
 script = ExtResource("1_inventory_ui")
 
+[node name="PickupFeedback" type="Label" parent="."]
+visible = false
+offset_left = 220.0
+offset_top = 292.0
+offset_right = 420.0
+offset_bottom = 320.0
+theme_override_colors/font_color = Color(1, 0.88, 0.58, 1)
+theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.03, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "Inventory full."
+horizontal_alignment = 1
+
 [node name="Window" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15

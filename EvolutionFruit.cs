@@ -30,10 +30,7 @@ public partial class EvolutionFruit : Area2D, IInteractable
 	{
 		if (interactor is not Player player
 			|| !Visible
-			|| !player.TryPickupItem(CarriedItem.CreateEvolutionFruit(
-				DevelopmentType,
-				DevelopmentIncrease,
-				AgeIncrease)))
+			|| !player.TryCollectItem(ItemCatalog.GetFruit(DevelopmentType)))
 		{
 			return false;
 		}

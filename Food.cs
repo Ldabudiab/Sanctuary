@@ -7,7 +7,7 @@ public partial class Food : Area2D, IInteractable
 
 	public bool TryInteract(Node interactor)
 	{
-		if (interactor is not Player player || !player.TryPickupItem(CarriedItem.CreateFood(EnduranceIncrease)))
+		if (interactor is not Player player || !player.TryCollectItem(ItemCatalog.Food))
 			return false;
 
 		QueueFree();

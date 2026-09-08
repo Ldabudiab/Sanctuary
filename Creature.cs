@@ -262,21 +262,36 @@ public partial class Creature : CharacterBody2D, IInteractable
 			WakeUp();
 		}
 
-		if (player.CarriedItem != null)
+		ItemDefinition selectedItem = player.Inventory.GetSelectedItem();
+		if (selectedItem != null && selectedItem.PucaEffect != PucaItemEffectKind.None)
 		{
-			if (!player.TryTakeCarriedItem(out CarriedItem item))
+			if (!TryApplyInventoryItem(selectedItem))
 				return false;
+			player.Inventory.Remove(selectedItem);
+		}
+		else
+		{
+			_needs.ApplyPetting();
+			_personality.ApplyPetting();
+			BeginReaction(Reaction.Petting, PetReactionDuration);
+		}
 
-			if (item.Kind == CarriedItemKind.Food)
-			{
+		return true;
+	}
+
+	private bool TryApplyInventoryItem(ItemDefinition item)
+	{
+		switch (item.PucaEffect)
+		{
+			case PucaItemEffectKind.Food:
 				_needs.ApplyFeeding();
 				if (item.ImprovesAttachment)
 					_personality.ApplyFeeding();
 				_stats.ApplyIncrease(CreatureStatType.Endurance, item.EnduranceIncrease);
 				BeginReaction(Reaction.Eating, EatReactionDuration);
-			}
-			else if (item.Kind == CarriedItemKind.EvolutionFruit && item.DevelopmentType.HasValue)
-			{
+				return true;
+
+			case PucaItemEffectKind.Development when item.DevelopmentType.HasValue:
 				_needs.ApplyFeeding();
 				bool reachedMaximum = _development.ApplyIncrease(
 					item.DevelopmentType.Value,
@@ -287,21 +302,16 @@ public partial class Creature : CharacterBody2D, IInteractable
 				{
 					GD.Print($"{Name} reached 100 {item.DevelopmentType.Value} development. The creature remains in its current Base form.");
 				}
-			}
-			else if (item.Kind == CarriedItemKind.Crystal && item.StatType.HasValue)
-			{
+				return true;
+
+			case PucaItemEffectKind.Stat when item.StatType.HasValue:
 				_stats.ApplyIncrease(item.StatType.Value, item.StatIncrease);
 				BeginReaction(Reaction.StatBoost, PetReactionDuration);
-			}
-		}
-		else
-		{
-			_needs.ApplyPetting();
-			_personality.ApplyPetting();
-			BeginReaction(Reaction.Petting, PetReactionDuration);
-		}
+				return true;
 
-		return true;
+			default:
+				return false;
+		}
 	}
 
 	private void BeginReaction(Reaction reaction, float duration)

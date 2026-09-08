@@ -6,32 +6,18 @@ public partial class Player : CharacterBody2D
 	public float MovementSpeed { get; set; } = 200.0f;
 
 	public Vector2 FacingDirection { get; private set; } = Vector2.Down;
-	public CarriedItem CarriedItem { get; private set; }
-	public bool IsCarryingFood => CarriedItem?.Kind == CarriedItemKind.Food;
 	public bool IsGameplayInputEnabled { get; private set; } = true;
 	public Inventory Inventory => PlayerInventory.Current;
 
 	private Node2D _visual = null!;
 	private Area2D _interactionArea = null!;
-	private CanvasItem _carriedFoodVisual = null!;
-	private CanvasItem _carriedCrystalVisual = null!;
-	private CanvasItem _carriedEvolutionFruitVisual = null!;
-	private Polygon2D _carriedEvolutionFruitShape = null!;
-	private Polygon2D _carriedEvolutionFruitAccent = null!;
-	private Polygon2D _carriedCrystalShape = null!;
-	private Polygon2D _carriedCrystalHighlight = null!;
+	private InventoryUI _inventoryUi = null!;
 
 	public override void _Ready()
 	{
 		_visual = GetNode<Node2D>("Visual");
 		_interactionArea = GetNode<Area2D>("InteractionArea");
-		_carriedFoodVisual = GetNode<CanvasItem>("CarriedFoodVisual");
-		_carriedCrystalVisual = GetNode<CanvasItem>("CarriedCrystalVisual");
-		_carriedCrystalShape = GetNode<Polygon2D>("CarriedCrystalVisual/Crystal");
-		_carriedCrystalHighlight = GetNode<Polygon2D>("CarriedCrystalVisual/Highlight");
-		_carriedEvolutionFruitVisual = GetNode<CanvasItem>("CarriedEvolutionFruitVisual");
-		_carriedEvolutionFruitShape = GetNode<Polygon2D>("CarriedEvolutionFruitVisual/Fruit");
-		_carriedEvolutionFruitAccent = GetNode<Polygon2D>("CarriedEvolutionFruitVisual/Accent");
+		_inventoryUi = GetNode<InventoryUI>("InventoryUI");
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -111,50 +97,12 @@ public partial class Player : CharacterBody2D
 		closestInteractable?.TryInteract(this);
 	}
 
-	public bool TryPickupFood()
+	public bool TryCollectItem(ItemDefinition item)
 	{
-		return TryPickupItem(CarriedItem.CreateFood());
-	}
-
-	public bool TryConsumeCarriedFood()
-	{
-		if (!IsCarryingFood)
-			return false;
-
-		TryTakeCarriedItem(out _);
-		return true;
-	}
-
-	public bool TryPickupItem(CarriedItem item)
-	{
-		if (item == null || CarriedItem != null)
-			return false;
-
-		CarriedItem = item;
-		UpdateCarriedItemVisual();
-		return true;
-	}
-
-	public bool TryTakeCarriedItem(out CarriedItem item)
-	{
-		item = CarriedItem;
-		if (item == null)
-			return false;
-
-		CarriedItem = null;
-		UpdateCarriedItemVisual();
-		return true;
-	}
-
-	public void SetCarriedItem(CarriedItem item)
-	{
-		CarriedItem = item;
-		UpdateCarriedItemVisual();
-	}
-
-	public void SetCarryingFood(bool isCarryingFood)
-	{
-		SetCarriedItem(isCarryingFood ? CarriedItem.CreateFood() : null);
+		if (Inventory.Add(item))
+			return true;
+		_inventoryUi.ShowFeedback("Inventory full.");
+		return false;
 	}
 
 	public void SetGameplayInputEnabled(bool enabled)
@@ -164,33 +112,4 @@ public partial class Player : CharacterBody2D
 			Velocity = Vector2.Zero;
 	}
 
-	private void UpdateCarriedItemVisual()
-	{
-		_carriedFoodVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Food;
-		_carriedCrystalVisual.Visible = CarriedItem?.Kind == CarriedItemKind.Crystal;
-		_carriedEvolutionFruitVisual.Visible = CarriedItem?.Kind == CarriedItemKind.EvolutionFruit;
-
-		if (CarriedItem?.Kind == CarriedItemKind.EvolutionFruit && CarriedItem.DevelopmentType.HasValue)
-		{
-			(_carriedEvolutionFruitShape.Color, _carriedEvolutionFruitAccent.Color) =
-				CarriedItem.DevelopmentType.Value switch
-				{
-					CreatureDevelopmentType.Star => (new Color(0.98f, 0.75f, 0.2f), new Color(1.0f, 0.96f, 0.58f)),
-					CreatureDevelopmentType.Natural => (new Color(0.3f, 0.75f, 0.3f), new Color(0.72f, 0.95f, 0.42f)),
-					CreatureDevelopmentType.Void => (new Color(0.38f, 0.2f, 0.62f), new Color(0.82f, 0.45f, 0.96f)),
-					_ => (Colors.White, Colors.White)
-				};
-		}
-
-		if (CarriedItem?.Kind != CarriedItemKind.Crystal)
-			return;
-
-		bool isRuby = CarriedItem.StatType == CreatureStatType.Power;
-		_carriedCrystalShape.Color = isRuby
-			? new Color(0.88f, 0.16f, 0.22f)
-			: new Color(0.16f, 0.78f, 0.38f);
-		_carriedCrystalHighlight.Color = isRuby
-			? new Color(1.0f, 0.62f, 0.62f, 0.9f)
-			: new Color(0.68f, 1.0f, 0.74f, 0.9f);
-	}
 }

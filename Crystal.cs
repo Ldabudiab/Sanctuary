@@ -11,7 +11,7 @@ public partial class Crystal : Area2D, IInteractable
 	public bool TryInteract(Node interactor)
 	{
 		if (interactor is not Player player
-			|| !player.TryPickupItem(CarriedItem.CreateCrystal(StatType, StatIncrease)))
+			|| !player.TryCollectItem(ItemCatalog.GetCrystal(StatType)))
 			return false;
 
 		QueueFree();

@@ -21,6 +21,8 @@ public sealed class Inventory
 	private readonly List<InventorySlot> _slots = new(SlotCount);
 
 	public IReadOnlyList<InventorySlot> Slots => _slots;
+	public string SelectedItemId { get; private set; } = string.Empty;
+	public int SelectedSlotIndex => _slots.FindIndex(slot => !slot.IsEmpty && slot.ItemId == SelectedItemId);
 	public event Action Changed;
 
 	public Inventory()
@@ -53,6 +55,8 @@ public sealed class Inventory
 			return false;
 
 		slot.Set(item.Id, slot.Quantity - quantity);
+		if (slot.IsEmpty && SelectedItemId == item.Id)
+			SelectedItemId = string.Empty;
 		Changed?.Invoke();
 		return true;
 	}
@@ -70,6 +74,19 @@ public sealed class Inventory
 	public bool CanAdd(ItemDefinition item)
 	{
 		return item != null && (FindSlot(item.Id) != null || FindEmptySlot() != null);
+	}
+
+	public void SelectSlot(int index)
+	{
+		SelectedItemId = index >= 0 && index < _slots.Count && !_slots[index].IsEmpty
+			? _slots[index].ItemId
+			: string.Empty;
+		Changed?.Invoke();
+	}
+
+	public ItemDefinition GetSelectedItem()
+	{
+		return string.IsNullOrEmpty(SelectedItemId) ? null : ItemCatalog.Get(SelectedItemId);
 	}
 
 	public InventorySaveData CreateSaveData()
@@ -95,6 +112,8 @@ public sealed class Inventory
 				: null;
 			_slots[index].Set(savedSlot?.ItemId ?? string.Empty, savedSlot?.Quantity ?? 0);
 		}
+		if (GetQuantity(ItemCatalog.Get(SelectedItemId)) <= 0)
+			SelectedItemId = string.Empty;
 		Changed?.Invoke();
 	}
 

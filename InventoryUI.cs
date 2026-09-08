@@ -8,7 +8,8 @@ public partial class InventoryUI : CanvasLayer
 	private Control _window = null!;
 	private GridContainer _grid = null!;
 	private Label _selection = null!;
-	private int _selectedSlot = -1;
+	private Label _pickupFeedback = null!;
+	private float _feedbackTimeRemaining;
 
 	public override void _Ready()
 	{
@@ -16,6 +17,7 @@ public partial class InventoryUI : CanvasLayer
 		_window = GetNode<Control>("Window");
 		_grid = GetNode<GridContainer>("Window/Panel/Margin/Layout/Grid");
 		_selection = GetNode<Label>("Window/Panel/Margin/Layout/Selection");
+		_pickupFeedback = GetNode<Label>("PickupFeedback");
 
 		for (int index = 0; index < Inventory.SlotCount; index++)
 		{
@@ -35,6 +37,15 @@ public partial class InventoryUI : CanvasLayer
 		GetNode<Button>("Window/Panel/Margin/Layout/Close").Pressed += Close;
 		Refresh();
 		_window.Visible = false;
+	}
+
+	public override void _Process(double delta)
+	{
+		if (_feedbackTimeRemaining <= 0.0f)
+			return;
+		_feedbackTimeRemaining -= (float)delta;
+		if (_feedbackTimeRemaining <= 0.0f)
+			_pickupFeedback.Visible = false;
 	}
 
 	public override void _Input(InputEvent @event)
@@ -66,8 +77,7 @@ public partial class InventoryUI : CanvasLayer
 
 	private void Open()
 	{
-		_selectedSlot = -1;
-		_selection.Text = "Select an inventory slot.";
+		UpdateSelectionText();
 		Refresh();
 		_player.SetGameplayInputEnabled(false);
 		_window.Visible = true;
@@ -81,12 +91,15 @@ public partial class InventoryUI : CanvasLayer
 
 	private void SelectSlot(int index)
 	{
-		_selectedSlot = index;
-		InventorySlot slot = PlayerInventory.Current.Slots[index];
-		_selection.Text = slot.IsEmpty
-			? $"Slot {index + 1} is empty."
-			: ItemCatalog.Get(slot.ItemId).DisplayName;
-		Refresh();
+		PlayerInventory.Current.SelectSlot(index);
+		UpdateSelectionText();
+	}
+
+	public void ShowFeedback(string message)
+	{
+		_pickupFeedback.Text = message;
+		_pickupFeedback.Visible = true;
+		_feedbackTimeRemaining = 2.0f;
 	}
 
 	private void Refresh()
@@ -97,9 +110,18 @@ public partial class InventoryUI : CanvasLayer
 			_slotButtons[index].Text = slot.IsEmpty
 				? $"Slot {index + 1}\n—"
 				: $"{ItemCatalog.Get(slot.ItemId).DisplayName}{(slot.Quantity > 1 ? $"\n×{slot.Quantity}" : string.Empty)}";
-			_slotButtons[index].Modulate = index == _selectedSlot
+			_slotButtons[index].Modulate = index == PlayerInventory.Current.SelectedSlotIndex
 				? new Color(1.0f, 0.84f, 0.42f)
 				: Colors.White;
 		}
+		UpdateSelectionText();
+	}
+
+	private void UpdateSelectionText()
+	{
+		ItemDefinition selected = PlayerInventory.Current.GetSelectedItem();
+		_selection.Text = selected == null
+			? "No item selected."
+			: $"Selected: {selected.DisplayName}";
 	}
 }
