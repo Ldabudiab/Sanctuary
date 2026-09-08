@@ -1,0 +1,297 @@
+[gd_scene load_steps=28 format=3]
+
+[ext_resource type="PackedScene" path="res://Chibi3DPlayer.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://Chibi3DPuca.tscn" id="2_puca"]
+[ext_resource type="Script" path="res://Chibi3DCamera.cs" id="3_camera"]
+
+[sub_resource type="StandardMaterial3D" id="Material_grass"]
+albedo_color = Color(0.31, 0.55, 0.25, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Material_path"]
+albedo_color = Color(0.62, 0.49, 0.31, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Material_stone"]
+albedo_color = Color(0.43, 0.46, 0.4, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.43, 0.27, 0.14, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Material_leaf"]
+albedo_color = Color(0.2, 0.43, 0.18, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_nest"]
+albedo_color = Color(0.69, 0.49, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_ground"]
+material = SubResource("Material_grass")
+size = Vector3(20, 0.3, 16)
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(20, 0.3, 16)
+
+[sub_resource type="BoxMesh" id="Mesh_path"]
+material = SubResource("Material_path")
+size = Vector3(3.2, 0.05, 13)
+
+[sub_resource type="BoxMesh" id="Mesh_boundary_horizontal"]
+material = SubResource("Material_stone")
+size = Vector3(20, 0.65, 0.5)
+
+[sub_resource type="BoxShape3D" id="Shape_boundary_horizontal"]
+size = Vector3(20, 0.65, 0.5)
+
+[sub_resource type="BoxMesh" id="Mesh_boundary_vertical"]
+material = SubResource("Material_stone")
+size = Vector3(0.5, 0.65, 16)
+
+[sub_resource type="BoxShape3D" id="Shape_boundary_vertical"]
+size = Vector3(0.5, 0.65, 16)
+
+[sub_resource type="SphereMesh" id="Mesh_rock"]
+material = SubResource("Material_stone")
+radius = 0.72
+height = 1.25
+radial_segments = 20
+rings = 10
+
+[sub_resource type="SphereShape3D" id="Shape_rock"]
+radius = 0.62
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+material = SubResource("Material_wood")
+top_radius = 0.24
+bottom_radius = 0.32
+height = 1.5
+radial_segments = 12
+
+[sub_resource type="CylinderShape3D" id="Shape_trunk"]
+radius = 0.32
+height = 1.5
+
+[sub_resource type="SphereMesh" id="Mesh_tree_crown"]
+material = SubResource("Material_leaf")
+radius = 0.9
+height = 1.65
+radial_segments = 20
+rings = 10
+
+[sub_resource type="SphereMesh" id="Mesh_bush"]
+material = SubResource("Material_leaf")
+radius = 0.5
+height = 0.8
+radial_segments = 16
+rings = 8
+
+[sub_resource type="BoxMesh" id="Mesh_fence_post"]
+material = SubResource("Material_wood")
+size = Vector3(0.22, 1.25, 0.22)
+
+[sub_resource type="BoxMesh" id="Mesh_fence_rail"]
+material = SubResource("Material_wood")
+size = Vector3(4.5, 0.16, 0.16)
+
+[sub_resource type="BoxShape3D" id="Shape_fence"]
+size = Vector3(4.7, 1.2, 0.3)
+
+[sub_resource type="TorusMesh" id="Mesh_nest"]
+material = SubResource("Material_nest")
+inner_radius = 0.25
+outer_radius = 0.52
+rings = 20
+ring_segments = 8
+
+[sub_resource type="Environment" id="Environment_garden"]
+background_mode = 1
+background_color = Color(0.52, 0.7, 0.82, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.86, 0.91, 0.8, 1)
+ambient_light_energy = 0.72
+tonemap_mode = 2
+
+[node name="Chibi3DPrototype" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_garden")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-52, -28, 0)
+light_color = Color(1, 0.92, 0.78, 1)
+light_energy = 1.15
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+position = Vector3(0, -0.15, 0)
+mesh = SubResource("Mesh_ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.15, 0)
+shape = SubResource("Shape_ground")
+
+[node name="Path" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.025, -0.5)
+mesh = SubResource("Mesh_path")
+
+[node name="NorthBoundary" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.325, -8)
+
+[node name="Mesh" type="MeshInstance3D" parent="NorthBoundary"]
+mesh = SubResource("Mesh_boundary_horizontal")
+
+[node name="Collision" type="CollisionShape3D" parent="NorthBoundary"]
+shape = SubResource("Shape_boundary_horizontal")
+
+[node name="SouthBoundary" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.325, 8)
+
+[node name="Mesh" type="MeshInstance3D" parent="SouthBoundary"]
+mesh = SubResource("Mesh_boundary_horizontal")
+
+[node name="Collision" type="CollisionShape3D" parent="SouthBoundary"]
+shape = SubResource("Shape_boundary_horizontal")
+
+[node name="WestBoundary" type="StaticBody3D" parent="."]
+position = Vector3(-10, 0.325, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WestBoundary"]
+mesh = SubResource("Mesh_boundary_vertical")
+
+[node name="Collision" type="CollisionShape3D" parent="WestBoundary"]
+shape = SubResource("Shape_boundary_vertical")
+
+[node name="EastBoundary" type="StaticBody3D" parent="."]
+position = Vector3(10, 0.325, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="EastBoundary"]
+mesh = SubResource("Mesh_boundary_vertical")
+
+[node name="Collision" type="CollisionShape3D" parent="EastBoundary"]
+shape = SubResource("Shape_boundary_vertical")
+
+[node name="RockLeft" type="StaticBody3D" parent="."]
+position = Vector3(-3.3, 0.55, 1.4)
+
+[node name="Mesh" type="MeshInstance3D" parent="RockLeft"]
+scale = Vector3(1.25, 0.75, 1)
+mesh = SubResource("Mesh_rock")
+
+[node name="Collision" type="CollisionShape3D" parent="RockLeft"]
+shape = SubResource("Shape_rock")
+
+[node name="RockRight" type="StaticBody3D" parent="."]
+position = Vector3(3.6, 0.5, -2.2)
+
+[node name="Mesh" type="MeshInstance3D" parent="RockRight"]
+scale = Vector3(0.9, 0.7, 1.2)
+mesh = SubResource("Mesh_rock")
+
+[node name="Collision" type="CollisionShape3D" parent="RockRight"]
+shape = SubResource("Shape_rock")
+
+[node name="TreeLeft" type="StaticBody3D" parent="."]
+position = Vector3(-6.8, 0, -3.8)
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeLeft"]
+position = Vector3(0, 0.75, 0)
+mesh = SubResource("Mesh_trunk")
+
+[node name="Crown" type="MeshInstance3D" parent="TreeLeft"]
+position = Vector3(0, 1.9, 0)
+mesh = SubResource("Mesh_tree_crown")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeLeft"]
+position = Vector3(0, 0.75, 0)
+shape = SubResource("Shape_trunk")
+
+[node name="TreeRight" type="StaticBody3D" parent="."]
+position = Vector3(6.7, 0, 3.9)
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeRight"]
+position = Vector3(0, 0.75, 0)
+mesh = SubResource("Mesh_trunk")
+
+[node name="Crown" type="MeshInstance3D" parent="TreeRight"]
+position = Vector3(0, 1.9, 0)
+mesh = SubResource("Mesh_tree_crown")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeRight"]
+position = Vector3(0, 0.75, 0)
+shape = SubResource("Shape_trunk")
+
+[node name="Bush1" type="MeshInstance3D" parent="."]
+position = Vector3(-5.2, 0.38, 4.8)
+scale = Vector3(1.4, 0.85, 1)
+mesh = SubResource("Mesh_bush")
+
+[node name="Bush2" type="MeshInstance3D" parent="."]
+position = Vector3(5.1, 0.38, -4.6)
+scale = Vector3(1.2, 0.9, 1.35)
+mesh = SubResource("Mesh_bush")
+
+[node name="Fence" type="StaticBody3D" parent="."]
+position = Vector3(-4.8, 0, -0.8)
+
+[node name="PostLeft" type="MeshInstance3D" parent="Fence"]
+position = Vector3(-2.15, 0.625, 0)
+mesh = SubResource("Mesh_fence_post")
+
+[node name="PostMiddle" type="MeshInstance3D" parent="Fence"]
+position = Vector3(0, 0.625, 0)
+mesh = SubResource("Mesh_fence_post")
+
+[node name="PostRight" type="MeshInstance3D" parent="Fence"]
+position = Vector3(2.15, 0.625, 0)
+mesh = SubResource("Mesh_fence_post")
+
+[node name="RailUpper" type="MeshInstance3D" parent="Fence"]
+position = Vector3(0, 0.82, 0)
+mesh = SubResource("Mesh_fence_rail")
+
+[node name="RailLower" type="MeshInstance3D" parent="Fence"]
+position = Vector3(0, 0.4, 0)
+mesh = SubResource("Mesh_fence_rail")
+
+[node name="Collision" type="CollisionShape3D" parent="Fence"]
+position = Vector3(0, 0.6, 0)
+shape = SubResource("Shape_fence")
+
+[node name="Nests" type="Node3D" parent="."]
+position = Vector3(3.4, 0.12, 4.7)
+
+[node name="Nest1" type="MeshInstance3D" parent="Nests"]
+position = Vector3(-1.25, 0, 0)
+mesh = SubResource("Mesh_nest")
+
+[node name="Nest2" type="MeshInstance3D" parent="Nests"]
+mesh = SubResource("Mesh_nest")
+
+[node name="Nest3" type="MeshInstance3D" parent="Nests"]
+position = Vector3(1.25, 0, 0)
+mesh = SubResource("Mesh_nest")
+
+[node name="Puca" parent="." instance=ExtResource("2_puca")]
+position = Vector3(2.4, 0, 0.8)
+rotation_degrees = Vector3(0, -25, 0)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector3(0, 0.05, 3)
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("3_camera")
+TargetPath = NodePath("../Player")
+FollowOffset = Vector3(7, 9, 9)
+FieldOfView = 42.0
+FollowSmoothing = 5.0
+LookAtHeight = 0.85
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+near = 0.1
+far = 100.0
