@@ -15,7 +15,7 @@ public partial class Main : Node2D
 		_worldTime = GetNode<WorldTime>("WorldTime");
 		_worldTime.NewDayStarted += OnNewDayStarted;
 		_saveManager = GetNode<SaveManager>("SaveManager");
-		_saveManager.LoadGame();
+		_saveManager.LoadInitialGame();
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

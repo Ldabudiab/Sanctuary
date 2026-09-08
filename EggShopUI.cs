@@ -74,9 +74,15 @@ public partial class EggShopUI : Control
 
 	private void OnBuyPressed()
 	{
-		_feedback.Text = _listing.ButtonPressed
-			? "Purchasing coming soon."
-			: "Select the Puca Egg first.";
+		if (!_listing.ButtonPressed)
+		{
+			_feedback.Text = "Select the Puca Egg first.";
+			return;
+		}
+
+		_feedback.Text = _player.Inventory.Add(ItemCatalog.PucaEgg)
+			? "Puca Egg purchased."
+			: "Inventory full.";
 	}
 
 	private void UpdateSelection()

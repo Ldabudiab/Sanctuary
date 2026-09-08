@@ -5,6 +5,18 @@ public sealed class SanctuarySaveData
 	public int Version { get; set; } = 1;
 	public WorldTimeSaveData WorldTime { get; set; } = new();
 	public Dictionary<string, CreatureSaveData> Creatures { get; set; } = new();
+	public InventorySaveData Inventory { get; set; } = new();
+}
+
+public sealed class InventorySaveData
+{
+	public List<InventorySlotSaveData> Slots { get; set; } = new();
+}
+
+public sealed class InventorySlotSaveData
+{
+	public string ItemId { get; set; } = string.Empty;
+	public int Quantity { get; set; }
 }
 
 public sealed class WorldTimeSaveData

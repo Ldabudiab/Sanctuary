@@ -9,6 +9,7 @@ public partial class Player : CharacterBody2D
 	public CarriedItem CarriedItem { get; private set; }
 	public bool IsCarryingFood => CarriedItem?.Kind == CarriedItemKind.Food;
 	public bool IsGameplayInputEnabled { get; private set; } = true;
+	public Inventory Inventory => PlayerInventory.Current;
 
 	private Node2D _visual = null!;
 	private Area2D _interactionArea = null!;

@@ -7,6 +7,7 @@ public partial class SaveManager : Node
 {
 	public const int CurrentSaveVersion = 1;
 	public const string SavePath = "user://sanctuary_save.json";
+	public static bool InitialLoadAttempted { get; private set; }
 
 	[Export]
 	public NodePath FeedbackLabelPath { get; set; } = null!;
@@ -193,7 +194,8 @@ public partial class SaveManager : Node
 		SanctuarySaveData saveData = new()
 		{
 			Version = CurrentSaveVersion,
-			WorldTime = _worldTime.CreateSaveData()
+			WorldTime = _worldTime.CreateSaveData(),
+			Inventory = PlayerInventory.Current.CreateSaveData()
 		};
 		foreach (Creature creature in GetPersistentCreatures())
 		{
@@ -227,6 +229,17 @@ public partial class SaveManager : Node
 			}
 		}
 		GD.Print("Creature data apply completed");
+
+		PlayerInventory.Current.Restore(saveData.Inventory ?? new InventorySaveData());
+	}
+
+	public void LoadInitialGame()
+	{
+		if (InitialLoadAttempted)
+			return;
+
+		InitialLoadAttempted = true;
+		LoadGame();
 	}
 
 	private IEnumerable<Creature> GetPersistentCreatures()
