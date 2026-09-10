@@ -1,3 +1,12 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+# Blender automatic backups
+*.blend1
+
+# Puca animation experiments / diagnostics
+Art/Models/Puca/Source/LegRigValidation/
+Art/Models/Puca/Source/RedesignedBasePucaManualWalk.glb
+Art/Blender/AnimateBasePucaWalk.py
+Art/Blender/AnimateRedesignedPucaWalk.py
+Art/Blender/CreateRedesignedPucaStepPose.py
