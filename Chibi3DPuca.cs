@@ -2,6 +2,8 @@ using Godot;
 
 public partial class Chibi3DPuca : CharacterBody3D
 {
+	private static readonly StringName WalkAnimationName = "Puca_Walk_Manual";
+
 	private enum PucaState
 	{
 		Idle,
@@ -51,6 +53,9 @@ public partial class Chibi3DPuca : CharacterBody3D
 
 	private readonly RandomNumberGenerator _random = new();
 	private Node3D _visualRoot = null!;
+	private AnimationPlayer _animationPlayer = null!;
+	private bool _animationAvailable;
+	private bool _walkAnimationActive;
 	private PucaState _state;
 	private float _stateTimeRemaining;
 	private float _blockedTime;
@@ -60,6 +65,7 @@ public partial class Chibi3DPuca : CharacterBody3D
 	public override void _Ready()
 	{
 		_visualRoot = GetNode<Node3D>("VisualRoot");
+		InitializeAnimation();
 		_gravity = (float)ProjectSettings.GetSetting("physics/3d/default_gravity");
 		_random.Randomize();
 		BeginIdle();
@@ -82,7 +88,63 @@ public partial class Chibi3DPuca : CharacterBody3D
 			UpdateWander(step, verticalVelocity);
 		}
 
+		bool isMoving = _state == PucaState.Wander
+			&& new Vector2(Velocity.X, Velocity.Z).LengthSquared() > 0.0001f;
+		SetWalkAnimationActive(isMoving);
+
 		MoveAndSlide();
+	}
+
+	private void InitializeAnimation()
+	{
+		_animationPlayer = _visualRoot.FindChild("AnimationPlayer", true, false) as AnimationPlayer;
+		if (_animationPlayer == null)
+		{
+			GD.PushWarning("Chibi3DPuca could not find the imported AnimationPlayer.");
+			return;
+		}
+
+		if (!_animationPlayer.HasAnimation(WalkAnimationName))
+		{
+			GD.PushWarning($"Chibi3DPuca is missing animation '{WalkAnimationName}'.");
+			return;
+		}
+
+		// The GLB animation is authored in-place but is not flagged to loop in the
+		// imported file. Loop it at runtime without changing the source animation.
+		Animation walkAnimation = _animationPlayer.GetAnimation(WalkAnimationName);
+		walkAnimation.LoopMode = Animation.LoopModeEnum.Linear;
+		_animationAvailable = true;
+		ApplyNeutralPose();
+	}
+
+	private void SetWalkAnimationActive(bool shouldPlay)
+	{
+		if (!_animationAvailable || shouldPlay == _walkAnimationActive)
+			return;
+
+		_walkAnimationActive = shouldPlay;
+		if (shouldPlay)
+		{
+			_animationPlayer.Play(WalkAnimationName);
+		}
+		else
+		{
+			ApplyNeutralPose();
+		}
+	}
+
+	private void ApplyNeutralPose()
+	{
+		if (!_animationAvailable)
+			return;
+
+		// Frame zero is the authored neutral/contact pose. Evaluate it once and
+		// pause there so Idle never freezes on an arbitrary mid-step frame.
+		_animationPlayer.Play(WalkAnimationName);
+		_animationPlayer.Seek(0.0, true);
+		_animationPlayer.Pause();
+		_walkAnimationActive = false;
 	}
 
 	private void BeginIdle()
